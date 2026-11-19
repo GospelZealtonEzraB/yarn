@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { parseRow, produced } from './recipe'
 import { isWrongSideRow, knit } from './fabric'
 import { yarnSpans } from './yarnPath'
-import { between, KNIT, PURL, Z } from './technique'
+import { between, BINDOFF, blend, DIAGRAMS, KNIT, PURL, Z } from './technique'
 import { beanie, crownRecipes } from '../patterns/beanie'
 import { needleFor, PROJECTS } from '../patterns/catalog'
 import { LESSONS, STAGES } from '../content/lessons'
@@ -190,5 +190,32 @@ describe('technique diagrams', () => {
     const k = KNIT.frames[4], p = PURL.frames[4]
     expect(Math.max(k.old.back.z, k.old.front.z)).toBeLessThan(Math.min(...k.yarn.map((s) => s.z)))
     expect(p.old.front.z).toBeGreaterThan(Math.max(...p.yarn.map((s) => s.z)))
+  })
+})
+
+describe('generic diagrams', () => {
+  it('every step of a diagram has the same parts, so steps can blend into each other', () => {
+    for (const d of Object.values(DIAGRAMS)) for (let i = 1; i < d.steps.length; i++) {
+      const a = d.steps[i - 1].scene, b = d.steps[i].scene
+      expect(b.needles).toHaveLength(a.needles.length)
+      expect(b.strands.map((s) => [s.pts.length, s.cls])).toEqual(a.strands.map((s) => [s.pts.length, s.cls]))
+      expect(blend(a, b, 0.5).strands.flatMap((s) => s.pts.flat()).every(Number.isFinite)).toBe(true)
+    }
+  })
+  it('bind-off: the lifted stitch encloses the newer stitch and the needle it is passed over', () => {
+    for (const step of BINDOFF.steps) {
+      const lifted = step.scene.strands.filter((s) => s.cls === 'old')
+      const rightNeedle = step.scene.needles[1].z
+      const newer = step.scene.strands.filter((s) => s.cls === 'work').map((s) => s.z)
+      expect(Math.min(...lifted.map((s) => s.z))).toBeLessThan(Math.min(rightNeedle, ...newer.filter((z) => z > 0)))
+      expect(Math.max(...lifted.map((s) => s.z))).toBeGreaterThan(Math.max(rightNeedle, ...newer))
+    }
+  })
+  it('bind-off: the left needle works in front of the right needle', () => {
+    for (const step of BINDOFF.steps) expect(step.scene.needles[0].z).toBeGreaterThan(step.scene.needles[1].z)
+  })
+  it('bind-off: the lifted stitch keeps its feet in the fabric while its top moves', () => {
+    const feet = (i: number) => BINDOFF.steps[i].scene.strands.filter((s) => s.cls === 'old').map((s, n) => (n === 0 ? s.pts[0] : s.pts[s.pts.length - 1]))
+    expect(feet(2)).toEqual(feet(0))
   })
 })

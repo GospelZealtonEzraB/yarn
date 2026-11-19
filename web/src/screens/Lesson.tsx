@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { LESSONS } from '../content/lessons'
 import { knit } from '../engine/fabric'
 import { useStore } from '../store'
-import { TECHNIQUES } from '../engine/technique'
+import { DIAGRAMS } from '../engine/technique'
 import { StitchExplorer } from '../ui/StitchExplorer'
 import { TechniqueView } from '../ui/TechniqueView'
 
@@ -23,7 +23,7 @@ export function Lesson({ id, back, open }: { id: string; back: () => void; open:
       {lesson.technique && (
         <section className="card">
           <h2>Watch the movement</h2>
-          <TechniqueView key={lesson.technique} technique={TECHNIQUES[lesson.technique]} />
+          <TechniqueView key={lesson.technique} technique={DIAGRAMS[lesson.technique]} />
           <p className="sub">A diagram, not a photo. Needle positions and the path of the yarn were checked against the step-by-step text and photos of a published tutorial. An experienced knitter has not reviewed it yet.</p>
         </section>
       )}
@@ -37,7 +37,7 @@ export function Lesson({ id, back, open }: { id: string; back: () => void; open:
           <StitchExplorer fabric={fabric} />
         </section>
       )}
-      {!lesson.technique && <p className="sub">This lesson has no movement diagram yet. So far only the knit and purl stitches have one.</p>}
+      {!lesson.technique && <p className="sub">This lesson has no movement diagram. Knit, purl and bind-off have one so far.</p>}
       <button className="btn wide" onClick={finish}>{state.lessons[id] ? 'Next' : 'Mark as done'}{next ? ` · ${next.title}` : ''}</button>
     </>
   )

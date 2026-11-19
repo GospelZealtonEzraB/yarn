@@ -140,7 +140,93 @@ export const PURL: Technique = {
   ],
 }
 
-export const TECHNIQUES = { knit: KNIT, purl: PURL }
+/* ---------- generic scenes: what the view actually draws ---------- */
+
+export interface SceneNeedle { from: P; to: P; z: number }
+export interface SceneStrand { pts: P[]; z: number; cls: 'work' | 'old' | 'rest' }
+export interface Scene { needles: SceneNeedle[]; strands: SceneStrand[] }
+export interface DiagramStep { title: string; text: string; scene: Scene }
+export interface Diagram { id: string; name: string; steps: DiagramStep[]; /** Visible area as x, y, width, height. */ view: [number, number, number, number] }
+
+const NEEDLE_LENGTH = 190
+/** A stitch sitting on a needle at p: back leg behind the needle, front leg in front. */
+function stitchAt(p: P): { back: P[]; front: P[] } {
+  return {
+    back: [[p[0] - 9, p[1] + 44], [p[0] - 9, p[1] + 20], [p[0] - 7, p[1] + 4], [p[0] - 2, p[1] - 7]],
+    front: [[p[0] - 2, p[1] - 7], [p[0] + 5, p[1] - 9], [p[0] + 8, p[1] + 5], [p[0] + 9, p[1] + 20], [p[0] + 9, p[1] + 44]],
+  }
+}
+
+/** The scene for one knit or purl keyframe. */
+export function sceneOf(f: Frame): Scene {
+  const strands: SceneStrand[] = []
+  for (const x of LEFT_XS) {
+    const st = leftStitch(x)
+    strands.push({ pts: st.back, z: Z.backLeg, cls: 'rest' }, { pts: st.front, z: Z.frontLeg, cls: 'rest' })
+  }
+  for (const t of WORKED_AT) {
+    const st = stitchAt(onNeedle(f.tip, f.angle, t))
+    strands.push({ pts: st.back, z: f.needleZ - 0.05, cls: 'rest' }, { pts: st.front, z: f.needleZ + 0.05, cls: 'rest' })
+  }
+  strands.push({ ...f.old.back, cls: 'old' }, { ...f.old.front, cls: 'old' })
+  for (const st of f.yarn) strands.push({ ...st, cls: 'work' })
+  return {
+    needles: [
+      { from: LEFT_NEEDLE.from, to: LEFT_NEEDLE.tip, z: Z.leftNeedle },
+      { from: f.tip, to: onNeedle(f.tip, f.angle, NEEDLE_LENGTH), z: f.needleZ },
+    ],
+    strands,
+  }
+}
+const diagram = (t: Technique): Diagram => ({ id: t.id, name: t.name, view: [44, 34, 276, 166], steps: t.frames.map((f) => ({ title: f.title, text: f.text, scene: sceneOf(f) })) })
+
+/*
+ * Bind-off. Two stitches are on the right needle: A was knitted first and sits
+ * further from the tip, B second. The left needle lifts A over B and over the
+ * tip. Checked against the step photos of a published bind-off tutorial: the
+ * left needle goes into the stitch further from the tip, in front of the right
+ * needle, and the lifted stitch ends up around the base of the other.
+ */
+const BO_TIP: P = [226, 96], BO_ANGLE = 40
+const BO_B = onNeedle(BO_TIP, BO_ANGLE, 40), BO_A = onNeedle(BO_TIP, BO_ANGLE, 64)
+const BO_XS = [44, 76, 108, 140]
+function bindOffScene(shift: P, a: { back: P[]; front: P[] }): Scene {
+  const move = (p: P): P => [p[0] + shift[0], p[1] + shift[1]]
+  const strands: SceneStrand[] = []
+  for (const x of BO_XS) {
+    const st = leftStitch(x)
+    strands.push({ pts: st.back.map(move), z: Z.backLeg, cls: 'rest' }, { pts: st.front.map(move), z: Z.frontLeg, cls: 'rest' })
+  }
+  const b = stitchAt(BO_B)
+  strands.push({ pts: b.back, z: 1.9, cls: 'work' }, { pts: b.front, z: 2.1, cls: 'work' })
+  // The lifted stitch goes in front of everything on its front leg and behind everything on its back leg,
+  // so it always encloses whatever it has been passed over.
+  strands.push({ pts: a.back, z: 0.5, cls: 'old' }, { pts: a.front, z: 5.5, cls: 'old' })
+  strands.push({ pts: [[BO_B[0] - 2, BO_B[1] - 7], [290, 70], [332, 36]], z: Z.behind, cls: 'work' })
+  return {
+    needles: [
+      { from: move(LEFT_NEEDLE.from), to: move(LEFT_NEEDLE.tip), z: Z.leftNeedle },
+      { from: BO_TIP, to: onNeedle(BO_TIP, BO_ANGLE, NEEDLE_LENGTH), z: 2 },
+    ],
+    strands,
+  }
+}
+const A_ON = stitchAt(BO_A)
+const A_FEET = { back: A_ON.back.slice(0, 2), front: A_ON.front.slice(3) }
+const A_LIFTED = { back: [...A_FEET.back, [222, 104], [212, 84]] as P[], front: [[212, 84], [220, 80], [228, 92], ...A_FEET.front] as P[] }
+const A_DROPPED = { back: [[250, 190], [246, 170], [244, 152], [250, 141]] as P[], front: [[250, 141], [262, 137], [270, 146], [272, 165], [274, 190]] as P[] }
+
+export const BINDOFF: Diagram = {
+  id: 'bindoff', name: 'Bind off', view: [34, 40, 300, 172],
+  steps: [
+    { title: 'Knit two stitches', text: 'Two stitches sit on the right needle. The blue one was knitted first, so it is further from the tip.', scene: bindOffScene([0, 0], A_ON) },
+    { title: 'Pick up the first stitch', text: 'Push the left needle tip into the blue stitch from left to right, in front of the right needle.', scene: bindOffScene([74, 32], A_ON) },
+    { title: 'Lift it over', text: 'Lift the blue stitch over the pink one and over the tip of the right needle.', scene: bindOffScene([18, -14], A_LIFTED) },
+    { title: 'Let it go', text: 'Slide the left needle out. The blue stitch now lies around the base of the pink one. One stitch is bound off. Knit one more and repeat.', scene: bindOffScene([0, 0], A_DROPPED) },
+  ],
+}
+
+export const DIAGRAMS: Record<'knit' | 'purl' | 'bindoff', Diagram> = { knit: diagram(KNIT), purl: diagram(PURL), bindoff: BINDOFF }
 
 const mix = (a: number, b: number, t: number) => a + (b - a) * t
 const mixP = (a: P[], b: P[], t: number): P[] => a.map((p, i) => [mix(p[0], b[i][0], t), mix(p[1], b[i][1], t)])
@@ -154,6 +240,14 @@ export function between(a: Frame, b: Frame, t: number): Frame {
     angle: mix(a.angle, b.angle, t),
     yarn: a.yarn.map((st, i) => mixS(st, b.yarn[i], t)) as Frame['yarn'],
     old: { back: mixS(a.old.back, b.old.back, t), front: mixS(a.old.front, b.old.front, t) },
+  }
+}
+
+/** The scene part-way between two steps. Positions blend; depth switches at the halfway point. */
+export function blend(a: Scene, b: Scene, t: number): Scene {
+  return {
+    needles: a.needles.map((n, i) => ({ from: mixP([n.from], [b.needles[i].from], t)[0], to: mixP([n.to], [b.needles[i].to], t)[0], z: t < 0.5 ? n.z : b.needles[i].z })),
+    strands: a.strands.map((st, i) => ({ pts: mixP(st.pts, b.strands[i].pts, t), z: t < 0.5 ? st.z : b.strands[i].z, cls: st.cls })),
   }
 }
 

@@ -8,7 +8,7 @@ that produces the instructions.
 
 | Area | What works |
 |---|---|
-| Learn | Yarn setup (weight, gauge, head size). Six-stage path. 12 written lessons covering stages 1 and 2, each with steps, a success check, a common mistake, and where possible an interactive drawing of the fabric. |
+| Learn | Yarn setup (weight, gauge, head size). Six-stage path. 16 written lessons covering stages 1 to 3, each with steps, a success check, a common mistake, and where possible an interactive drawing of the fabric. |
 | Make | Garter scarf and ribbed beanie. Kit list, numbered steps, row counter, and a stitch-for-stitch picture of the piece that grows as you count. Both resize to any gauge from 10 to 34 stitches per 10 cm. |
 | Practice | Name that swatch (drawn by the engine, so it never repeats a stored image). Flashcards for 18 pattern abbreviations. |
 | Lab | Type any row of shorthand and see the yarn path and chart. Colour by row, stitch or depth, hide layers, zoom to one stitch, trace the yarn. |
@@ -17,10 +17,13 @@ that produces the instructions.
 
 ## Version 1 gaps, known and deliberate
 
-- **Movement diagrams exist for knit and purl only**, showing needles and yarn
-  without hands. Needle positions and yarn path were checked against the text
-  and step photos of the Nimble Needles knit and purl tutorials. No knitter has
-  reviewed them. Cast-on, bind-off and the rest have written steps only.
+- **Movement diagrams exist for knit, purl and bind-off**, showing needles and
+  yarn without hands. Needle positions and yarn path were checked against the
+  text and step photos of the Nimble Needles tutorials. No knitter has reviewed
+  them.
+- **Long-tail cast-on has written steps only.** The movement depends on hand
+  position, which a needle-and-yarn diagram cannot show without misleading. It
+  needs illustrated hands or video.
 - **Lesson and pattern text has not been test-knitted.** The arithmetic is
   tested by the engine. The wording needs a knitter's read-through.
 - **Yarn-path view draws knit, purl, k2tog and ssk.** Yarn over and M1
@@ -32,8 +35,7 @@ that produces the instructions.
 
 1. Hosting: the GitHub Pages workflow is in place. Pages must be switched on in the repository settings (Settings, Pages, Source: GitHub Actions).
 2. Loop geometry for yo, M1L and M1R in the yarn-path view (k2tog and ssk are done).
-3. Stage 3 lessons (in the round, decreases, double-pointed needles).
-4. Movement diagrams for cast-on, bind-off, k2tog and ssk, and a knitter's review of all of them.
+4. Movement diagrams for k2tog and ssk, a hands-on visual for the cast-on, and a knitter's review of all diagrams.
 5. Ribbed scarf and fingerless mitts templates.
 6. Two more games: chart reader, spot the dropped stitch.
 7. Measured row gauge as an optional setting.

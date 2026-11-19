@@ -1,34 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
-import { between, curve, LEFT_NEEDLE, LEFT_XS, leftStitch, onNeedle, WORKED_AT, Z, type Frame, type P, type Technique } from '../engine/technique'
+import { blend, curve, type Diagram, type Scene } from '../engine/technique'
 
 interface Item { z: number; d: string; cls: string }
-const NEEDLE_LENGTH = 190
 
-function scene(f: Frame): Item[] {
-  const items: Item[] = []
-  const line = (a: P, b: P) => `M${a[0].toFixed(1)},${a[1].toFixed(1)}L${b[0].toFixed(1)},${b[1].toFixed(1)}`
-  items.push({ z: Z.leftNeedle, d: line(LEFT_NEEDLE.from, LEFT_NEEDLE.tip), cls: 'needle' })
-  items.push({ z: f.needleZ, d: line(f.tip, onNeedle(f.tip, f.angle, NEEDLE_LENGTH)), cls: 'needle' })
-  for (const x of LEFT_XS) {
-    const st = leftStitch(x)
-    items.push({ z: Z.backLeg, d: curve(st.back), cls: 'rest' }, { z: Z.frontLeg, d: curve(st.front), cls: 'rest' })
-  }
-  for (const t of WORKED_AT) {
-    const p = onNeedle(f.tip, f.angle, t)
-    items.push(
-      { z: f.needleZ - 0.05, d: curve([[p[0] - 9, p[1] + 44], [p[0] - 9, p[1] + 20], [p[0] - 7, p[1] + 4], [p[0] - 2, p[1] - 7]]), cls: 'rest' },
-      { z: f.needleZ + 0.05, d: curve([[p[0] - 2, p[1] - 7], [p[0] + 5, p[1] - 9], [p[0] + 8, p[1] + 5], [p[0] + 9, p[1] + 20], [p[0] + 9, p[1] + 44]]), cls: 'rest' },
-    )
-  }
-  items.push({ z: f.old.back.z, d: curve(f.old.back.pts), cls: 'old' }, { z: f.old.front.z, d: curve(f.old.front.pts), cls: 'old' })
-  for (const st of f.yarn) items.push({ z: st.z, d: curve(st.pts), cls: 'work' })
-  return items.sort((a, b) => a.z - b.z)
+function items(scene: Scene): Item[] {
+  const out: Item[] = scene.needles.map((n) => ({ z: n.z, cls: 'needle', d: `M${n.from[0].toFixed(1)},${n.from[1].toFixed(1)}L${n.to[0].toFixed(1)},${n.to[1].toFixed(1)}` }))
+  for (const st of scene.strands) out.push({ z: st.z, d: curve(st.pts), cls: st.cls })
+  return out.sort((a, b) => a.z - b.z)
 }
 
 const ease = (t: number) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2)
 
-export function TechniqueView({ technique }: { technique: Technique }) {
-  const frames = technique.frames
+export function TechniqueView({ technique }: { technique: Diagram }) {
+  const frames = technique.steps
   const [step, setStep] = useState(0)
   const [pos, setPos] = useState(0) // animated position, in frames
   const [playing, setPlaying] = useState(false)
@@ -59,23 +43,23 @@ export function TechniqueView({ technique }: { technique: Technique }) {
   }, [playing, step, frames.length])
 
   const i = Math.min(Math.floor(pos), frames.length - 2)
-  const frame = between(frames[i], frames[i + 1], Math.min(Math.max(pos - i, 0), 1))
+  const frame = blend(frames[i].scene, frames[i + 1].scene, Math.min(Math.max(pos - i, 0), 1))
   const shown = frames[step]
 
   return (
     <div className="technique">
       <figure>
         <figcaption>Needles and yarn, seen from your side · hands not shown</figcaption>
-        <svg viewBox="44 34 276 166" role="img" aria-label={`${technique.name}: ${shown.title}`}>
-          <g transform={mirror ? 'translate(364 0) scale(-1 1)' : undefined} fill="none">
-            {scene(frame).map((it, n) => it.cls === 'needle'
+        <svg viewBox={technique.view.join(' ')} role="img" aria-label={`${technique.name}: ${shown.title}`}>
+          <g transform={mirror ? `translate(${technique.view[0] * 2 + technique.view[2]} 0) scale(-1 1)` : undefined} fill="none">
+            {items(frame).map((it, n) => it.cls === 'needle'
               ? <path key={n} d={it.d} className="t-needle" />
               : <g key={n}><path d={it.d} className={`t-edge ${it.cls}`} /><path d={it.d} className={`t-yarn ${it.cls}`} /></g>)}
           </g>
         </svg>
         <div className="legend">
-          <span><i className="swatch a" />Working yarn and new loop</span>
-          <span><i className="swatch b" />Stitch being worked</span>
+          <span><i className="swatch a" />{technique.id === 'bindoff' ? 'Newest stitch and working yarn' : 'Working yarn and new loop'}</span>
+          <span><i className="swatch b" />{technique.id === 'bindoff' ? 'Stitch being bound off' : 'Stitch being worked'}</span>
           <span><i className="swatch c" />Other stitches</span>
         </div>
       </figure>

@@ -13,7 +13,7 @@ export interface Lesson {
   watch: string
   /** Fabric the engine draws so the knitter can compare with their own. */
   /** Animated needle-and-yarn diagram of the movement. */
-  technique?: 'knit' | 'purl'
+  technique?: 'knit' | 'purl' | 'bindoff'
   see?: { castOn: number; rows: string[]; construction: Construction; caption: string }
 }
 
@@ -57,13 +57,13 @@ export const LESSONS: Lesson[] = [
     steps: [
       'Measure a tail about three times the width of what you are making, plus 15 cm. Make a slip knot there and put it on the needle in your right hand. It counts as your first stitch.',
       'With your left hand, hang the tail over your thumb and the working yarn over your index finger. Hold both strands against your palm with your other fingers, then spread thumb and finger apart.',
-      'Bring the needle tip up under the strand on the outside of your thumb.',
-      'Carry the tip over to your index finger, go over the strand there and catch it.',
+      'Bring the needle tip up into the loop around your thumb, coming from below.',
+      'Carry the tip over to your index finger. Go over the strand that runs to that finger, coming from above, and catch it.',
       'Bring that strand back down through the loop on your thumb.',
       'Let the loop drop off your thumb. Use your thumb to snug the new stitch up to the needle. Repeat from step 3.',
     ],
     check: 'A row of even loops on the needle with a neat braid along the bottom edge. Count them twice.',
-    watch: 'Casting on tightly makes the first row a fight. Leave a little space between stitches, about the width of the yarn.' },
+    watch: 'Casting on tightly makes the first row a fight. Leave a little space between stitches, about the width of the yarn. This is the one technique where watching hands helps most, so pair these steps with a video the first time.' },
   { id: 'knit', stage: 1, title: 'The knit stitch', minutes: 20, technique: 'knit',
     intro: 'This is the stitch everything else is built from. Knitters teach it with a rhyme: in through the front door, once around the back, peek through the window, off jumps Jack.',
     steps: [
@@ -77,7 +77,7 @@ export const LESSONS: Lesson[] = [
     check: 'Knit every row and you get garter stitch: bumpy ridges on both sides.',
     watch: 'At the start of a row, do not pull the yarn up and over the needle. It makes the first stitch look like two, and your scarf gets wider.',
     see: { castOn: 12, rows: rep('K1', 8), construction: 'flat', caption: 'Garter stitch. Tap a stitch to see how each loop passes through the one below.' } },
-  { id: 'bindoff', stage: 1, title: 'Bind off', minutes: 10,
+  { id: 'bindoff', stage: 1, title: 'Bind off', minutes: 10, technique: 'bindoff',
     intro: 'Binding off closes the live stitches so the fabric cannot unravel.',
     steps: [
       'Knit 2 stitches.',
@@ -167,6 +167,51 @@ export const LESSONS: Lesson[] = [
     ],
     check: 'The column of V shapes is complete again with no horizontal bars across it.',
     watch: 'To undo a few stitches instead, put the left needle into the stitch below the one on the right needle, slide the right needle out and pull the yarn. Knitters call it tinking.' },
+
+  { id: 'round', stage: 3, title: 'Join in the round', minutes: 20,
+    intro: 'A circular needle lets you knit a tube with no seam. You go round and round instead of back and forth, and the right side always faces you.',
+    steps: [
+      'Cast on onto a circular needle that is shorter than the tube you are making. For an adult hat that is a 40 cm needle.',
+      'Spread the stitches all the way round the needle. Lay it on a table and check that the cast-on edge sits on the inside of the circle the whole way, with no stitch flipped over the needle.',
+      'Hold the needle so the tip with the working yarn is in your right hand. Slip a stitch marker onto the right tip.',
+      'Knit the first stitch on the left tip and pull the yarn snug. The circle is now closed.',
+      'Keep knitting. Each time you reach the marker, slip it from the left tip to the right and carry on. One trip back to the marker is one round.',
+    ],
+    check: 'You have a tube. Knitting every stitch gives smooth stockinette on the outside without ever purling.',
+    watch: 'If the cast-on edge spirals around the needle when you join, the tube has a permanent twist. It cannot be fixed later, so check before the first stitch and again after the first round.' },
+  { id: 'k2tog', stage: 3, title: 'Knit two together', minutes: 10,
+    intro: 'The simplest decrease. Two stitches become one, and the result leans to the right. Patterns write it k2tog.',
+    steps: [
+      'Push the right needle tip into the next two stitches on the left needle at once, from left to right, as if they were a single stitch. The tip goes through the second stitch first, then the first.',
+      'Wrap the yarn as for a normal knit stitch.',
+      'Draw the new loop through both stitches.',
+      'Slide both old stitches off the left needle together.',
+    ],
+    check: 'One stitch fewer on the needle, and the left of the two old stitches lies on top, slanting right.',
+    watch: 'If the stitches are tight, the tip may only catch one of them. Look for both loops on the needle before you wrap.',
+    see: { castOn: 12, rows: ['K1', 'K1', 'K1', '*K2, k2tog; rep from *', 'K1', 'K1'], construction: 'round', caption: 'Row 4 has three decreases. Tap one to see the two loops it passes through, with the left one on top.' } },
+  { id: 'ssk', stage: 3, title: 'Slip, slip, knit', minutes: 10,
+    intro: 'The mirror image of k2tog. Two stitches become one and the result leans to the left. Patterns write it ssk.',
+    steps: [
+      'Slip the next stitch from the left needle to the right as if to knit: put the right tip in from left to right and slide the stitch across without wrapping.',
+      'Slip the following stitch the same way.',
+      'Push the left needle tip into the fronts of both slipped stitches, from left to right.',
+      'Wrap the yarn around the right needle and knit the two stitches together.',
+    ],
+    check: 'One stitch fewer, and the right of the two old stitches lies on top, slanting left.',
+    watch: 'Slip the stitches one at a time and as if to knit. Slipping them as if to purl, or both at once, gives a twisted, bulkier decrease.',
+    see: { castOn: 12, rows: ['K1', 'K1', 'K1', '*K2, ssk; rep from *', 'K1', 'K1'], construction: 'round', caption: 'The same fabric with left-leaning decreases. Compare which loop is on top.' } },
+  { id: 'dpn', stage: 3, title: 'Double-pointed needles', minutes: 20,
+    intro: 'As a hat crown shrinks, the stitches no longer reach around a circular needle. Double-pointed needles hold a small tube on three or four short needles.',
+    steps: [
+      'Take one double-pointed needle in your right hand in place of the right tip of the circular. Knit about a third of the stitches onto it.',
+      'Pick up a second double-pointed needle and knit the next third onto it. Use a third needle for the rest. The circular needle is now empty.',
+      'The three needles form a triangle. Hold the two you are working between and let the third hang.',
+      'Knit across one needle with an empty one. When that needle empties, it becomes your working needle for the next.',
+      'Pull the first stitch on each needle a little tighter than the rest.',
+    ],
+    check: 'The tube carries on without a break and no stitches slide off the back ends.',
+    watch: 'A loose column of stitches where two needles meet is called a ladder. Snugging the first stitch on each needle, or shifting the joins by a stitch or two every few rounds, prevents it. A marker at the very end of a needle falls off, so keep it one stitch in.' },
 ]
 
 export const GLOSSARY: [string, string][] = [
