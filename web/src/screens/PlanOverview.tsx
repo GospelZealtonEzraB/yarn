@@ -1,6 +1,7 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { toPattern } from '../agent/plan'
-import { settingsOf, useStore } from '../store'
+import { SAMPLE_ID, settingsOf, useStore } from '../store'
+import { ModelView } from '../ui/ModelView'
 import { Assembly3D } from '../ui/Assembly3D'
 import { PlanDetails } from '../ui/PlanDetails'
 
@@ -9,6 +10,7 @@ export function PlanOverview({ id, back, openPiece, openLesson }: { id: string; 
   const { state, set } = useStore()
   const plan = state.custom.find((c) => c.id === id)!.plan
   const settings = settingsOf(state)
+  const [view, setView] = useState<'pieces' | 'reference'>('pieces')
   const totals = useMemo(() => plan.pieces.map((_, i) => {
     try { return toPattern(plan, settings, i).steps.reduce((n, s) => n + (s.rows?.length ?? 0), 0) } catch { return 0 }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -28,13 +30,23 @@ export function PlanOverview({ id, back, openPiece, openLesson }: { id: string; 
     <>
       <button className="back" onClick={back}>← All projects</button>
       <header className="top">
-        <span className="tag">Designed for you · {plan.pieces.length} pieces</span>
+        <span className="tag">{id === SAMPLE_ID ? 'Example design' : 'Designed for you'} · {plan.pieces.length} pieces</span>
         <h1>{plan.title}</h1>
       </header>
 
       <figure className="hero">
-        <Assembly3D plan={plan} settings={settings} progress={progress} />
-        <figcaption>Built from your pieces · solid = knitted · see-through = still to make · drag to turn</figcaption>
+        {plan.model && (
+          <div className="seg view-toggle">
+            <button aria-pressed={view === 'pieces'} onClick={() => setView('pieces')}>Your pieces</button>
+            <button aria-pressed={view === 'reference'} onClick={() => setView('reference')}>Finished look</button>
+          </div>
+        )}
+        {view === 'reference' && plan.model
+          ? <ModelView file={plan.model} label={plan.title} />
+          : <Assembly3D plan={plan} settings={settings} progress={progress} />}
+        <figcaption>{view === 'reference' && plan.model
+          ? 'A reference model made from the photo by an AI · what to aim for · drag to turn'
+          : 'Built from your pieces · solid = knitted · see-through = still to make · drag to turn'}</figcaption>
       </figure>
       {plan.photo && <figure className="reference"><img src={plan.photo} alt="Your reference photo" /><figcaption>Your reference photo</figcaption></figure>}
       <p className="sub">The model is assembled from each piece's stitch counts and the positions the designer gave. It shows shape, size and progress. It is a guide, not a photograph of the finished toy.</p>
@@ -59,7 +71,7 @@ export function PlanOverview({ id, back, openPiece, openLesson }: { id: string; 
       </section>
 
       <PlanDetails plan={plan} openLesson={openLesson} />
-      <button className="chip" onClick={() => { set({ custom: state.custom.filter((c) => c.id !== id) }); back() }}>Remove this design</button>
+      {id !== SAMPLE_ID && <button className="chip" onClick={() => { set({ custom: state.custom.filter((c) => c.id !== id) }); back() }}>Remove this design</button>}
     </>
   )
 }

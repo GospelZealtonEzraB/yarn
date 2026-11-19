@@ -13,7 +13,7 @@ import { checkPattern, checkPlan, expand, normalise, toPattern, type Plan } from
 import { findProject, projectsFor } from '../patterns/catalog'
 import { design, DESIGNER, MAX_TURNS } from '../agent/run'
 import { runTool, TOOLS } from '../agent/tools'
-import { INITIAL } from '../store'
+import { INITIAL, SAMPLE_ID } from '../store'
 import beaniePlan from '../agent/fixtures/weekend-beanie.json'
 import { balanced, repeatWidth, rowsFor, STITCH_PATTERNS } from '../patterns/stitches'
 import { classify } from './product'
@@ -767,5 +767,33 @@ describe('designs made of several pieces', () => {
     expect(p[0][0]).toBeLessThan(widest)
     expect(p[p.length - 1][0]).toBeLessThan(widest)
     expect(p.flat().every(Number.isFinite)).toBe(true)
+  })
+})
+
+describe('the example design', () => {
+  const sample = INITIAL.custom.find((c) => c.id === SAMPLE_ID)!.plan
+  it('is a real many-piece plan from the live agent that still passes every check', () => {
+    expect(sample.pieces.length).toBeGreaterThan(3)
+    expect(checkPlan(sample, LESSONS.map((l) => l.id))).toEqual([])
+  })
+  it('has its reference model, and does not carry the reference photo', () => {
+    expect(sample.model).toBe('bunny.glb')
+    expect(sample.photo).toBeUndefined()
+  })
+  it('a shaped piece is measured at its widest row, not its cast-on edge', () => {
+    const settings = { gauge: 18, headCm: 56, handCm: 19, yarn: 'Test', needle: '5 mm' }
+    const i = sample.pieces.findIndex((p) => p.name === 'Head')
+    const pattern = findProject(`${SAMPLE_ID}#${i}`, INITIAL.custom)!.build!(settings)
+    const f = knit(pattern.castOn, pattern.steps.flatMap((s) => s.rows ?? []), pattern.construction)
+    const widest = Math.max(...f.rows.map((r) => r.length))
+    expect(product(pattern, f, 18).widthCm).toBeCloseTo((widest / 18) * 10 / 2, 5) // a solid is seen doubled
+  })
+  it('every piece opens in the builder and can be drawn', () => {
+    const settings = { gauge: 18, headCm: 56, handCm: 19, yarn: 'Test', needle: '5 mm' }
+    sample.pieces.forEach((_, i) => {
+      const pattern = findProject(`${SAMPLE_ID}#${i}`, INITIAL.custom)!.build!(settings)
+      const shape = product(pattern, knit(pattern.castOn, pattern.steps.flatMap((s) => s.rows ?? []), pattern.construction), 18)
+      expect(shape.lengthCm).toBeGreaterThan(0)
+    })
   })
 })

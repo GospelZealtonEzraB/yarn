@@ -62,6 +62,8 @@ export interface Plan {
   not_checked: string[]
   /** The knitter's reference photo, kept small, so the target is always in view. */
   photo?: string
+  /** A ready-made reference model of the finished item, as a file name under the app's models folder. */
+  model?: string
 }
 
 const NO_PLACE: Place = { x_cm: 0, y_cm: 0, z_cm: 0, tilt_deg: 0, lean_deg: 0 }

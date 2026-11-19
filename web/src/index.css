@@ -272,3 +272,5 @@ textarea{font:inherit;padding:10px 12px;border:1.5px solid var(--line);border-ra
 .reference img{border-radius:10px;display:block}
 .lesson.piece{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px}
 .dot{width:16px;height:16px;border-radius:50%;background:var(--ya);border:1px solid var(--line)}
+.kit b{white-space:normal;text-align:right;max-width:55%}
+.kit li{grid-template-columns:36px minmax(0,1fr) minmax(0,auto)}

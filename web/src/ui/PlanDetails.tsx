@@ -8,7 +8,7 @@ export function PlanDetails({ plan, openLesson }: { plan: Plan; openLesson: (id:
   return (
     <>
       <section className="card">
-        <span className="tag">Designed for you · {plan.difficulty}</span>
+        <span className="tag">Designed by the AI coach · {plan.difficulty}</span>
         <p>{plan.summary}</p>
         <p className="sub"><b>What the designer understood:</b> {plan.what_i_saw}</p>
         {plan.assumptions.length > 0 && (

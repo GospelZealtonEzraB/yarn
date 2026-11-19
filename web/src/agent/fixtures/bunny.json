@@ -1,0 +1,780 @@
+{
+ "title": "Dusty-pink seated bunny",
+ "summary": "A seated, softly stuffed bunny with long ears, rounded limbs and a pale scarf, sized to about 44 cm tall including its ears. This is an ambitious first project for you: practise the skills in order before starting the shaped pieces.",
+ "what_i_saw": "The bunny appears to be crocheted, with close horizontal ridges; its pale scarf appears to be sewn fabric rather than knitting. This hand-knitted version uses garter ridges, separate stuffed parts, embroidered features, pale inner ears and a knitted scarf, so its surface and drape will differ.",
+ "difficulty": "intermediate",
+ "assumptions": [
+  "The photo has no scale, so the size is a design choice; the head is a little narrower than the body.",
+  "The inner ears look lighter than the outer ears; pale knitted panels suggest that effect.",
+  "The unseen back is assumed plain, with no tail; the scarf is assumed removable.",
+  "The profile's 18 stitches per 10 cm is used for the flat garter fabric; row estimates use 36 rows per 10 cm. Check both in a swatch."
+ ],
+ "yarn": {
+  "weight": "Worsted-weight yarn suitable for 5 mm needles",
+  "amount": "About 250\u2013300 g dusty pink, 30\u201350 g pale pink, and a small length of black",
+  "colours": [
+   "dusty pink",
+   "pale pink",
+   "black"
+  ],
+  "note": "Choose washable yarn with a firm twist. Make a garter swatch; if stuffing shows through, use smaller needles and recalculate the pattern for the new gauge before starting."
+ },
+ "tools": [
+  {
+   "name": "Knitting needles",
+   "size_or_qty": "5 mm, one pair of straight needles or a 60 cm circular needle used flat",
+   "why": "Hold the wide body while knitting back and forth."
+  },
+  {
+   "name": "Blunt yarn needle",
+   "size_or_qty": "1",
+   "why": "Gather ends, sew seams and embroider the face."
+  },
+  {
+   "name": "Washable toy stuffing",
+   "size_or_qty": "About 200 g",
+   "why": "Fill the head, body and limbs firmly but evenly."
+  },
+  {
+   "name": "Tape measure and scissors",
+   "size_or_qty": "1 of each",
+   "why": "Measure relaxed fabric and cut yarn."
+  },
+  {
+   "name": "Removable stitch markers",
+   "size_or_qty": "Several",
+   "why": "Mark row groups and pin placements before sewing."
+  }
+ ],
+ "skills": [
+  {
+   "name": "Read your ball band",
+   "why": "Choose compatible yarn and care instructions.",
+   "lesson_id": "kit"
+  },
+  {
+   "name": "Slip knot",
+   "why": "Start each piece.",
+   "lesson_id": "slipknot"
+  },
+  {
+   "name": "Long-tail cast-on",
+   "why": "Make the starting edge of each part.",
+   "lesson_id": "caston"
+  },
+  {
+   "name": "The knit stitch",
+   "why": "Work the fabric and the plain rows.",
+   "lesson_id": "knit"
+  },
+  {
+   "name": "Garter stitch",
+   "why": "Make the ridged fabric by knitting every row.",
+   "lesson_id": null
+  },
+  {
+   "name": "Knit a gauge swatch",
+   "why": "Check the stitch and row gauge before committing to the toy.",
+   "lesson_id": "gauge"
+  },
+  {
+   "name": "Knit front and back",
+   "why": "Widen the rounded parts and ears.",
+   "lesson_id": null
+  },
+  {
+   "name": "Knit two together",
+   "why": "Narrow the tops and limbs.",
+   "lesson_id": "k2tog"
+  },
+  {
+   "name": "Bind off",
+   "why": "Finish the open edges and panels.",
+   "lesson_id": "bindoff"
+  },
+  {
+   "name": "Gather an edge",
+   "why": "Close the small ends of the stuffed parts.",
+   "lesson_id": null
+  },
+  {
+   "name": "Sew garter pieces together",
+   "why": "Close the flat pieces and attach all the parts securely.",
+   "lesson_id": null
+  },
+  {
+   "name": "Stuff a knitted toy",
+   "why": "Shape the bunny without visible gaps or lumps.",
+   "lesson_id": null
+  },
+  {
+   "name": "Embroider a simple face",
+   "why": "Make the black eyes, nose and mouth without hard parts.",
+   "lesson_id": null
+  },
+  {
+   "name": "Weave in the ends",
+   "why": "Secure and hide finishing tails.",
+   "lesson_id": "weave"
+  }
+ ],
+ "new_lessons": [
+  {
+   "skill": "Garter stitch",
+   "title": "Knit a ridged fabric",
+   "goal": "Make a flat piece with ridges on both faces.",
+   "steps": [
+    "Cast on a few stitches with the yarn in your right hand.",
+    "Knit every stitch across the first row.",
+    "Turn the work so the needle with stitches is in your left hand.",
+    "Knit every stitch across the next row.",
+    "Keep turning and knitting every row; count stitches at each edge."
+   ],
+   "check": "Both faces have horizontal ridges and the stitch count stays the same.",
+   "watch": "An accidental yarn-over adds a stitch; keep the yarn behind the needles for each knit and count the row."
+  },
+  {
+   "skill": "Knit front and back",
+   "title": "Make one stitch into two",
+   "goal": "Increase by one stitch without leaving a large hole.",
+   "steps": [
+    "Hold the yarn behind the work in your right hand.",
+    "Insert the right needle into the front of the next stitch as to knit.",
+    "Wrap the yarn and draw a new loop through, but leave the old stitch on the left needle.",
+    "Insert the right needle into the back of that same old stitch.",
+    "Wrap the yarn and draw another loop through, then slide the old stitch off.",
+    "Continue along the row and count the stitches."
+   ],
+   "check": "There are two new stitches where there was one.",
+   "watch": "Dropping the old stitch after the first loop prevents the increase; leave it on the left needle until both loops are made."
+  },
+  {
+   "skill": "Gather an edge",
+   "title": "Close a rounded end",
+   "goal": "Close a small cast-on or live-stitch edge without a hole.",
+   "steps": [
+    "Cut a generous yarn tail and thread it through a blunt yarn needle.",
+    "For live stitches, pass the needle through each stitch on the knitting needle and slide them off; for a cast-on edge, pass it through the edge loops all the way around.",
+    "Pull the tail gradually until the opening closes.",
+    "Pass the needle through the gathered stitches again and pull snug.",
+    "Secure the tail on the inside with several small stitches; leave the remaining tail for seaming if needed."
+   ],
+   "check": "The opening is closed and stays closed when gently tugged.",
+   "watch": "Missing a loop leaves a hole; reopen the gather and thread through every loop before tightening."
+  },
+  {
+   "skill": "Sew garter pieces together",
+   "title": "Seam and attach soft parts",
+   "goal": "Join the knitted edges securely with the seam mostly hidden.",
+   "steps": [
+    "Place the two long edges of a flat piece together with the right side inside and thread a matching tail onto a yarn needle.",
+    "Pass the needle under a small edge loop on one side, then the matching loop on the other.",
+    "Continue alternating sides, drawing the yarn snug without puckering; leave the specified stuffing opening.",
+    "Turn the piece right side out and fill it when instructed.",
+    "Place the bound-off rim or panel against its marked position, then sew all around its edge with small matching stitches.",
+    "Pass through the attachment a second time, secure on the inside and hide the tail."
+   ],
+   "check": "The seam holds under a gentle tug and the attachment has no loose gaps.",
+   "watch": "Pulling each stitch too tight puckers the seam; loosen it until the edges lie naturally."
+  },
+  {
+   "skill": "Stuff a knitted toy",
+   "title": "Fill smoothly",
+   "goal": "Make a firm, rounded shape without stretching holes in the fabric.",
+   "steps": [
+    "Pull the stuffing into small fluffy tufts.",
+    "Push a little stuffing into the closed end of the seamed piece.",
+    "Add small tufts, spreading them into the sides with your fingers.",
+    "Keep filling until the piece holds its shape but remains soft enough to squeeze.",
+    "Check for lumps and visible stuffing, redistribute as needed, then sew the opening closed."
+   ],
+   "check": "The piece feels even, has its intended shape and does not show stuffing through the stitches.",
+   "watch": "Large wads make lumps and strain seams; remove them and replace them with smaller tufts."
+  },
+  {
+   "skill": "Embroider a simple face",
+   "title": "Stitch the bunny face",
+   "goal": "Create two secure eyes, a triangular nose and a small mouth.",
+   "steps": [
+    "Mark the eye, nose and mouth positions with removable markers.",
+    "Thread a short length of black yarn on a blunt needle and bring it out at the first eye, leaving a tail inside the head.",
+    "Make several small straight stitches close together for an oval eye, then repeat for the other eye.",
+    "Fill a small inverted triangle with close stitches for the nose.",
+    "Make a short vertical stitch down from the nose and two short angled stitches for the mouth.",
+    "Take the ends inside the head, secure with several hidden stitches and trim."
+   ],
+   "check": "The features are firmly attached, balanced and free of long loose loops.",
+   "watch": "A long surface stitch can catch or loosen; replace it with several short, anchored stitches."
+  }
+ ],
+ "pieces": [
+  {
+   "name": "Body",
+   "quantity": 1,
+   "colour_hex": "#ba8188",
+   "construction": "flat",
+   "cast_on": 12,
+   "stuffed": true,
+   "form": "solid",
+   "wrap_radius_cm": 0,
+   "sections": [
+    {
+     "title": "Round out the base",
+     "instructions": "Work these six rows in order. kfb means knit into the front and back of each stitch.",
+     "row_groups": [
+      {
+       "rows": [
+        "kfb",
+        "K1",
+        "kfb",
+        "K1",
+        "kfb",
+        "K1"
+       ],
+       "repeat": 1
+      }
+     ],
+     "length_cm": 1.7,
+     "until": "About 1.7 cm from cast-on; complete all six shaping rows.",
+     "tip": "Leave a long cast-on tail to gather the base."
+    },
+    {
+     "title": "Body middle",
+     "instructions": "Knit every row; the estimate is 48 rows.",
+     "row_groups": [
+      {
+       "rows": [
+        "K1",
+        "K1"
+       ],
+       "repeat": 24
+      }
+     ],
+     "length_cm": 13.3,
+     "until": "This straight section measures about 13.3 cm; finish after an even number of rows.",
+     "tip": "Measure fabric without stretching."
+    },
+    {
+     "title": "Taper to the neck",
+     "instructions": "Work all 12 rows in order.",
+     "row_groups": [
+      {
+       "rows": [
+        "*K2, k2tog; rep from *",
+        "K1",
+        "*K4, k2tog; rep from *",
+        "K1",
+        "*K3, k2tog; rep from *",
+        "K1",
+        "*K2, k2tog; rep from *",
+        "K1",
+        "*K1, k2tog; rep from *",
+        "K1",
+        "k2tog",
+        "K1"
+       ],
+       "repeat": 1
+      }
+     ],
+     "length_cm": 3.3,
+     "until": "This tapered section measures about 3.3 cm; complete every shaping row.",
+     "tip": "Keep decreases loose enough to work."
+    },
+    {
+     "title": "Close and seam",
+     "instructions": "Cut yarn leaving a long tail, thread it through the live stitches and draw snug. Sew long sides together and gather the cast-on edge, leaving an opening in the side for stuffing.",
+     "row_groups": [],
+     "length_cm": 0,
+     "until": "",
+     "tip": "Stuff and close in assembly."
+    }
+   ],
+   "place": {
+    "x_cm": 0,
+    "y_cm": 0,
+    "z_cm": 0,
+    "tilt_deg": 0,
+    "lean_deg": 0
+   }
+  },
+  {
+   "name": "Head",
+   "quantity": 1,
+   "colour_hex": "#ba8188",
+   "construction": "flat",
+   "cast_on": 12,
+   "stuffed": true,
+   "form": "solid",
+   "wrap_radius_cm": 0,
+   "sections": [
+    {
+     "title": "Shape lower head",
+     "instructions": "Work the ten shaping rows in order.",
+     "row_groups": [
+      {
+       "rows": [
+        "kfb",
+        "K1",
+        "kfb",
+        "K1",
+        "*K3, kfb; rep from *",
+        "K1",
+        "*K4, kfb; rep from *",
+        "K1",
+        "*K5, kfb; rep from *",
+        "K1"
+       ],
+       "repeat": 1
+      }
+     ],
+     "length_cm": 2.8,
+     "until": "About 2.8 cm from cast-on; complete all ten rows.",
+     "tip": "Keep the cast-on tail long."
+    },
+    {
+     "title": "Head middle",
+     "instructions": "Knit every row; the estimate is 30 rows.",
+     "row_groups": [
+      {
+       "rows": [
+        "K1",
+        "K1"
+       ],
+       "repeat": 15
+      }
+     ],
+     "length_cm": 8.3,
+     "until": "Middle section measures about 8.3 cm; end after an even number of rows.",
+     "tip": "Do not stretch when measuring."
+    },
+    {
+     "title": "Round off crown",
+     "instructions": "Work the ten rows in order.",
+     "row_groups": [
+      {
+       "rows": [
+        "*K5, k2tog; rep from *",
+        "K1",
+        "*K4, k2tog; rep from *",
+        "K1",
+        "*K3, k2tog; rep from *",
+        "K1",
+        "k2tog",
+        "K1",
+        "k2tog",
+        "K1"
+       ],
+       "repeat": 1
+      }
+     ],
+     "length_cm": 2.8,
+     "until": "Crown section is about 2.8 cm; complete all ten rows.",
+     "tip": "Count stitches after each decrease row."
+    },
+    {
+     "title": "Close and seam",
+     "instructions": "Cut a long tail, pass it through live stitches and pull tight. Sew the long sides and gather the cast-on edge, leaving a side opening for stuffing.",
+     "row_groups": [],
+     "length_cm": 0,
+     "until": "",
+     "tip": "Close the opening after stuffing."
+    }
+   ],
+   "place": {
+    "x_cm": 0,
+    "y_cm": 18.3,
+    "z_cm": 0,
+    "tilt_deg": 0,
+    "lean_deg": 0
+   }
+  },
+  {
+   "name": "Arms",
+   "quantity": 2,
+   "colour_hex": "#ba8188",
+   "construction": "flat",
+   "cast_on": 8,
+   "stuffed": true,
+   "form": "solid",
+   "wrap_radius_cm": 0,
+   "sections": [
+    {
+     "title": "Round hand",
+     "instructions": "Work these four rows in order.",
+     "row_groups": [
+      {
+       "rows": [
+        "kfb",
+        "K1",
+        "kfb",
+        "K1"
+       ],
+       "repeat": 1
+      }
+     ],
+     "length_cm": 1.1,
+     "until": "About 1.1 cm from cast-on; finish all four rows.",
+     "tip": "Leave a long tail to gather the hand."
+    },
+    {
+     "title": "Arm length",
+     "instructions": "Knit each row; the estimate is 30 rows.",
+     "row_groups": [
+      {
+       "rows": [
+        "K1",
+        "K1"
+       ],
+       "repeat": 15
+      }
+     ],
+     "length_cm": 8.3,
+     "until": "Straight section measures about 8.3 cm; end after an even number of rows.",
+     "tip": "Measure without stretching."
+    },
+    {
+     "title": "Narrow shoulder",
+     "instructions": "Work four rows in order.",
+     "row_groups": [
+      {
+       "rows": [
+        "*K2, k2tog; rep from *",
+        "K1",
+        "*K1, k2tog; rep from *",
+        "K1"
+       ],
+       "repeat": 1
+      }
+     ],
+     "length_cm": 1.1,
+     "until": "Shoulder section measures about 1.1 cm; finish all four rows.",
+     "tip": "The narrow edge will be sewn to the body."
+    },
+    {
+     "title": "Close hand and seam",
+     "instructions": "Bind off leaving a long tail. Sew long edges together and gather the cast-on edge, leaving the shoulder rim open for stuffing.",
+     "row_groups": [],
+     "length_cm": 0,
+     "until": "",
+     "tip": "Make two."
+    }
+   ],
+   "place": {
+    "x_cm": 13,
+    "y_cm": 7.8,
+    "z_cm": 0,
+    "tilt_deg": 0,
+    "lean_deg": -45
+   }
+  },
+  {
+   "name": "Legs",
+   "quantity": 2,
+   "colour_hex": "#ba8188",
+   "construction": "flat",
+   "cast_on": 8,
+   "stuffed": true,
+   "form": "solid",
+   "wrap_radius_cm": 0,
+   "sections": [
+    {
+     "title": "Round toe",
+     "instructions": "Work the six shaping rows in order.",
+     "row_groups": [
+      {
+       "rows": [
+        "kfb",
+        "K1",
+        "kfb",
+        "K1",
+        "*K3, kfb; rep from *",
+        "K1"
+       ],
+       "repeat": 1
+      }
+     ],
+     "length_cm": 1.7,
+     "until": "About 1.7 cm from cast-on; finish all six rows.",
+     "tip": "Leave a long tail for gathering the toe."
+    },
+    {
+     "title": "Foot and leg",
+     "instructions": "Knit every row; the estimate is 30 rows.",
+     "row_groups": [
+      {
+       "rows": [
+        "K1",
+        "K1"
+       ],
+       "repeat": 15
+      }
+     ],
+     "length_cm": 8.3,
+     "until": "Straight section measures about 8.3 cm; end after an even number of rows.",
+     "tip": "Measure relaxed."
+    },
+    {
+     "title": "Taper to hip",
+     "instructions": "Work four rows in order.",
+     "row_groups": [
+      {
+       "rows": [
+        "*K3, k2tog; rep from *",
+        "K1",
+        "*K2, k2tog; rep from *",
+        "K1"
+       ],
+       "repeat": 1
+      }
+     ],
+     "length_cm": 1.1,
+     "until": "Hip section measures about 1.1 cm; finish all four rows.",
+     "tip": "The bound-off edge will be attached to the body."
+    },
+    {
+     "title": "Seam",
+     "instructions": "Bind off with a long tail. Seam the long sides and gather the cast-on edge, leaving the hip rim open for stuffing.",
+     "row_groups": [],
+     "length_cm": 0,
+     "until": "",
+     "tip": "Make two."
+    }
+   ],
+   "place": {
+    "x_cm": 4,
+    "y_cm": 1.9,
+    "z_cm": 17.2,
+    "tilt_deg": -80,
+    "lean_deg": 0
+   }
+  },
+  {
+   "name": "Outer ears",
+   "quantity": 2,
+   "colour_hex": "#ba8188",
+   "construction": "flat",
+   "cast_on": 6,
+   "stuffed": false,
+   "form": "panel",
+   "wrap_radius_cm": 0,
+   "sections": [
+    {
+     "title": "Widen ear",
+     "instructions": "Work six rows in order.",
+     "row_groups": [
+      {
+       "rows": [
+        "*K2, kfb; rep from *",
+        "K1",
+        "*K3, kfb; rep from *",
+        "K1",
+        "*K4, kfb; rep from *",
+        "K1"
+       ],
+       "repeat": 1
+      }
+     ],
+     "length_cm": 1.7,
+     "until": "About 1.7 cm from cast-on; finish all six rows.",
+     "tip": "The cast-on edge is the ear base."
+    },
+    {
+     "title": "Ear length",
+     "instructions": "Knit every row; the estimate is 31 rows. Adjust by pairs of rows if needed.",
+     "row_groups": [
+      {
+       "rows": [
+        "K1",
+        "K1"
+       ],
+       "repeat": 15
+      },
+      {
+       "rows": [
+        "K1"
+       ],
+       "repeat": 1
+      }
+     ],
+     "length_cm": 8.6,
+     "until": "Straight section measures about 8.6 cm.",
+     "tip": "Measure without stretching."
+    },
+    {
+     "title": "Ear tip",
+     "instructions": "Work six rows in order.",
+     "row_groups": [
+      {
+       "rows": [
+        "*K4, k2tog; rep from *",
+        "K1",
+        "*K3, k2tog; rep from *",
+        "K1",
+        "*K2, k2tog; rep from *",
+        "K1"
+       ],
+       "repeat": 1
+      }
+     ],
+     "length_cm": 1.7,
+     "until": "Tip section measures about 1.7 cm; finish all six rows.",
+     "tip": "Bind off after shaping."
+    },
+    {
+     "title": "Finish ear",
+     "instructions": "Bind off, leaving a sewing tail. Make two.",
+     "row_groups": [],
+     "length_cm": 0,
+     "until": "",
+     "tip": "Fold the base slightly after adding the lining."
+    }
+   ],
+   "place": {
+    "x_cm": 2.4,
+    "y_cm": 31.8,
+    "z_cm": 0.7,
+    "tilt_deg": 0,
+    "lean_deg": 14
+   }
+  },
+  {
+   "name": "Inner ear panels",
+   "quantity": 2,
+   "colour_hex": "#e7b7bb",
+   "construction": "flat",
+   "cast_on": 4,
+   "stuffed": false,
+   "form": "panel",
+   "wrap_radius_cm": 0,
+   "sections": [
+    {
+     "title": "Widen lining",
+     "instructions": "Work four rows in order.",
+     "row_groups": [
+      {
+       "rows": [
+        "*K1, kfb; rep from *",
+        "K1",
+        "*K2, kfb; rep from *",
+        "K1"
+       ],
+       "repeat": 1
+      }
+     ],
+     "length_cm": 1.1,
+     "until": "About 1.1 cm from cast-on; finish all four rows.",
+     "tip": "The cast-on edge is the lining base."
+    },
+    {
+     "title": "Lining length",
+     "instructions": "Knit every row; the estimate is 20 rows.",
+     "row_groups": [
+      {
+       "rows": [
+        "K1",
+        "K1"
+       ],
+       "repeat": 10
+      }
+     ],
+     "length_cm": 5.6,
+     "until": "Straight section measures about 5.6 cm; finish an even number of rows.",
+     "tip": "Measure relaxed."
+    },
+    {
+     "title": "Taper lining",
+     "instructions": "Work six rows in order.",
+     "row_groups": [
+      {
+       "rows": [
+        "*K2, k2tog; rep from *",
+        "K1",
+        "*K1, k2tog; rep from *",
+        "K1",
+        "k2tog",
+        "K1"
+       ],
+       "repeat": 1
+      }
+     ],
+     "length_cm": 1.7,
+     "until": "Tip section measures about 1.7 cm; finish all six rows.",
+     "tip": "The lining is smaller than the outer ear."
+    },
+    {
+     "title": "Finish lining",
+     "instructions": "Bind off leaving a long tail for sewing. Make two.",
+     "row_groups": [],
+     "length_cm": 0,
+     "until": "",
+     "tip": "Sew flat on the fronts of the ears."
+    }
+   ],
+   "place": {
+    "x_cm": 2.7,
+    "y_cm": 33,
+    "z_cm": 0.8,
+    "tilt_deg": 0,
+    "lean_deg": 14
+   }
+  },
+  {
+   "name": "Scarf",
+   "quantity": 1,
+   "colour_hex": "#f1d3d5",
+   "construction": "flat",
+   "cast_on": 8,
+   "stuffed": false,
+   "form": "wrap",
+   "wrap_radius_cm": 4,
+   "sections": [
+    {
+     "title": "Scarf strip",
+     "instructions": "Knit every row; the estimate is 216 rows.",
+     "row_groups": [
+      {
+       "rows": [
+        "K1",
+        "K1"
+       ],
+       "repeat": 108
+      }
+     ],
+     "length_cm": 60,
+     "until": "Scarf measures about 60 cm from cast-on, unstretched, ending after an even number of rows.",
+     "tip": "Use pale pink or a slightly lighter shade."
+    },
+    {
+     "title": "Finish scarf",
+     "instructions": "Bind off loosely and weave in ends.",
+     "row_groups": [],
+     "length_cm": 0,
+     "until": "",
+     "tip": "Wrap loosely around the neck; remove for a small child."
+    }
+   ],
+   "place": {
+    "x_cm": 0,
+    "y_cm": 18,
+    "z_cm": 0,
+    "tilt_deg": 0,
+    "lean_deg": 0
+   }
+  }
+ ],
+ "assembly": [
+  "Fill the body and head through their side openings, and the limbs through their open shoulder or hip rims. Shape evenly, then sew the body and head openings shut; leave the limb rims open until attaching.",
+  "Set the head on the body's narrow neck with its seam at the back. Sew firmly around the contact area, passing through both parts several times.",
+  "Place the legs low on the front with toes pointing forward; sew each filled hip rim all the way around to the body. Position the arms at the upper sides with the hands angled down and out, and sew each shoulder rim all the way around.",
+  "Centre a pale inner panel on the front of each ear and sew around its edge. Pinch each ear base into a shallow cup, sew the fold, then sew both bases firmly to the top of the head, leaning slightly outward.",
+  "Mark the face on the front of the head and embroider two black oval eyes, a small inverted triangle for the nose, and a short line with two angled mouth stitches. Secure and hide all ends.",
+  "Wrap the scarf loosely once around the neck and let the ends hang at the front. Remove the scarf for a small child because of the strangulation hazard; use no buttons or safety eyes, check seams and embroidery often, and repair any loose part."
+ ],
+ "not_checked": [
+  "The checker verifies the written row recipes and stitch counts, not binding off, gathering live or cast-on stitches, seaming, stuffing, attaching panels, folding ears, embroidery or scarf wrapping.",
+  "Lengths and positions are estimates based on the supplied gauge; stuffing, seaming and actual row gauge change the final proportions and fit of attached pieces.",
+  "The pale inner-ear colour, scale and unseen back are interpreted from the photo. The original fabric and the hand-knitted garter texture will look different.",
+  "For a toy intended for a child, the pattern check does not verify toy-safety compliance, seam strength or age suitability; independently assess those before giving it to a child."
+ ],
+ "model": "bunny.glb"
+}

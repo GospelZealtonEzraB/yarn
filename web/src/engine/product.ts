@@ -52,7 +52,9 @@ export function product(pattern: Pattern, fabric: Fabric, gauge: number): Produc
     if (v !== side[side.length - 1][1] || r === s.rows[1] - 1) side.push([u, v])
   }
   const outline: [number, number][] = [...side.map(([u, v]): [number, number] => [u, -v]), ...side.reverse()]
-  return { sections, outline, lengthCm: cm, widthCm: half(pattern.castOn) * 2, marks: pattern.marks ?? [] }
+  // As wide as its widest row, which for a shaped piece is not the cast-on edge.
+  const widthCm = Math.max(...outline.map(([, v]) => Math.abs(v))) * 2
+  return { sections, outline, lengthCm: cm, widthCm, marks: pattern.marks ?? [] }
 }
 
 /** How far along the piece a row count is, in cm from the cast-on edge. */

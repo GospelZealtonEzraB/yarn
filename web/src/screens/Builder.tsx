@@ -121,7 +121,7 @@ export function Builder({ id, back, openLesson }: { id: string; back: () => void
               <p className="sub"><b>{stitchPattern(style).name}.</b> {stitchPattern(style).note}</p>
             </section>
           )}
-          {!plan && <section className="card">
+          {!plan && !piece && <section className="card">
             <h2>Your kit</h2>
             <ul className="kit">{pattern.kit.map((k) => <li key={k.name}><KitIcon name={k.name} /><span>{k.name}</span><b>{k.qty}</b></li>)}</ul>
             <p className="sub">Yarn amounts are estimates. Buy a little extra.</p>
