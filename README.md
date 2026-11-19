@@ -4,6 +4,7 @@ A knitting teacher that builds each project with you one step at a time.
 
 - `prototype/index.html` is the clickable product prototype and plan (open it in a browser).
 - `web/` is the app: React, TypeScript, Vite, installable PWA.
+- `docs/SCOPE.md` is the product scope: what is built, what is next, and open decisions.
 
 ## Run
 

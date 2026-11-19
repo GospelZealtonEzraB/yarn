@@ -3,6 +3,8 @@ import { parseRow, produced } from './recipe'
 import { isWrongSideRow, knit } from './fabric'
 import { yarnSpans } from './yarnPath'
 import { beanie, crownRecipes } from '../patterns/beanie'
+import { needleFor, PROJECTS } from '../patterns/catalog'
+import { LESSONS, STAGES } from '../content/lessons'
 
 const look = (rows: string[][]) => rows.map((r) => r.join(''))
 
@@ -69,5 +71,42 @@ describe('beanie template', () => {
       expect(f.rows[f.rows.length - 1]).toHaveLength(b.crownCounts[b.crownCounts.length - 1])
       expect(f.rows[0]).toHaveLength(b.crownCounts[0])
     }
+  })
+})
+
+describe('every project and lesson the app ships', () => {
+  const settings = (gauge: number) => ({ gauge, headCm: 56, yarn: 'Test', needle: needleFor(gauge) })
+  it('each pattern can be worked from cast-on to the last row at every gauge', () => {
+    for (const p of PROJECTS) if (p.build) for (let gauge = 10; gauge <= 34; gauge++) {
+      const pattern = p.build(settings(gauge))
+      const f = knit(pattern.castOn, pattern.steps.flatMap((s) => s.rows ?? []), pattern.construction)
+      expect(f.rows.length).toBeGreaterThan(10)
+      expect(pattern.kit.length).toBeGreaterThan(2)
+    }
+  })
+  it('the beanie text quotes the counts the engine actually reaches', () => {
+    const pattern = PROJECTS.find((p) => p.id === 'beanie')!.build!(settings(18))
+    const f = knit(pattern.castOn, pattern.steps.flatMap((s) => s.rows ?? []), 'round')
+    expect(pattern.steps[0].text).toContain('88')
+    expect(f.rows[f.rows.length - 1]).toHaveLength(8)
+    expect(pattern.steps[5].text).toContain('remaining 8 stitches')
+  })
+  it('the scarf keeps its stitch count and ends on a whole ridge', () => {
+    const pattern = PROJECTS.find((p) => p.id === 'scarf')!.build!(settings(18))
+    const rows = pattern.steps.flatMap((s) => s.rows ?? [])
+    expect(pattern.castOn).toBe(32)
+    expect(rows.length % 2).toBe(0)
+  })
+  it('every lesson drawing is valid knit and purl fabric', () => {
+    for (const l of LESSONS) if (l.see) expect(() => yarnSpans(knit(l.see!.castOn, l.see!.rows, l.see!.construction))).not.toThrow()
+  })
+  it('lesson ids are unique and every stage is defined', () => {
+    expect(new Set(LESSONS.map((l) => l.id)).size).toBe(LESSONS.length)
+    for (const l of LESSONS) expect(STAGES.some((s) => s.n === l.stage)).toBe(true)
+  })
+  it('the stockinette lesson really draws stockinette, the knit lesson garter', () => {
+    const draw = (id: string) => { const s = LESSONS.find((l) => l.id === id)!.see!; return knit(s.castOn, s.rows, s.construction).rows.map((r) => r[0]).join('') }
+    expect(draw('stockinette')).toBe('kkkkkkkk')
+    expect(draw('knit')).toBe('kpkpkpkp')
   })
 })

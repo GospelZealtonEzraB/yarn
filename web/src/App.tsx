@@ -1,75 +1,46 @@
-import { useMemo, useState } from 'react'
-import { knit, type Construction } from './engine/fabric'
-import { beanie } from './patterns/beanie'
-import { ChartView } from './ui/FabricView'
-import { StitchExplorer } from './ui/StitchExplorer'
+import { useEffect, useState } from 'react'
+import { Builder } from './screens/Builder'
+import { Coach } from './screens/Coach'
+import { Lab } from './screens/Lab'
+import { Learn } from './screens/Learn'
+import { Lesson } from './screens/Lesson'
+import { Practice } from './screens/Practice'
+import { Projects } from './screens/Projects'
+import { load, save, StoreContext, type State } from './store'
 
-const PRESETS: [string, string, Construction][] = [
-  ['Stockinette', 'K1', 'round'],
-  ['Garter', 'K1', 'flat'],
-  ['2×2 rib', 'K2, P2', 'round'],
-  ['Seed stitch', 'K1, P1', 'flat'],
-  ['Crown decrease', '*K2, k2tog; rep from *', 'round'],
+type Tab = 'learn' | 'make' | 'practice' | 'lab' | 'coach'
+const TABS: [Tab, string, string][] = [
+  ['learn', 'Learn', 'M4 6h7a3 3 0 013 3v10a2 2 0 00-2-2H4zM20 6h-6v13'],
+  ['make', 'Make', 'M5 14c0-6 3-9 7-9s7 3 7 9v4H5zM5 14h14'],
+  ['practice', 'Practice', 'M12 4a8 8 0 100 16 8 8 0 000-16zM12 9a3 3 0 100 6 3 3 0 000-6z'],
+  ['lab', 'Lab', 'M4 8l4 8 4-8 4 8 4-8'],
+  ['coach', 'Coach', 'M5 7h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V9a2 2 0 012-2zM12 9.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7zM8 7l1.5-2h5L16 7'],
 ]
 
 export default function App() {
-  const [recipe, setRecipe] = useState('K2, P2')
-  const [mode, setMode] = useState<Construction>('round')
-  const [gauge, setGauge] = useState(18)
-  const [head, setHead] = useState(56)
-
-  const result = useMemo(() => {
-    try {
-      const rows = recipe.includes('k2tog') || recipe.includes('ssk') ? [recipe] : Array(8).fill(recipe)
-      return { fabric: knit(12, rows, mode) }
-    } catch (e) {
-      return { error: (e as Error).message }
-    }
-  }, [recipe, mode])
-  const yarnOk = result.fabric?.rows.every((r) => r.every((s) => s === 'k' || s === 'p'))
-  const hat = useMemo(() => { try { return beanie({ gauge, headCm: head }) } catch { return null } }, [gauge, head])
+  const [state, setState] = useState<State>(load)
+  const [tab, setTab] = useState<Tab>('learn')
+  const [lesson, setLesson] = useState<string | null>(null)
+  const [project, setProject] = useState<string | null>(null)
+  const set = (patch: Partial<State>) => setState((s) => { const next = { ...s, ...patch }; save(next); return next })
+  useEffect(() => { window.scrollTo(0, 0) }, [tab, lesson, project])
 
   return (
-    <main>
-      <header>
-        <p className="eyebrow">Loopwise · stitch lab</p>
-        <h1>Type a row. See the fabric.</h1>
-        <p className="lede">Both pictures below are drawn from the stitches you type, worked over 12 cast-on stitches. Nothing here is a stored image.</p>
-      </header>
-
-      <section className="panel">
-        <div className="chips">
-          {PRESETS.map(([name, r, m]) => (
-            <button key={name} className="chip" aria-pressed={recipe === r && mode === m} onClick={() => { setRecipe(r); setMode(m) }}>{name}</button>
-          ))}
-        </div>
-        <div className="fields">
-          <label htmlFor="recipe">Row recipe<input id="recipe" value={recipe} onChange={(e) => setRecipe(e.target.value)} spellCheck={false} /></label>
-          <label htmlFor="mode">Worked<select id="mode" value={mode} onChange={(e) => setMode(e.target.value as Construction)}>
-            <option value="round">in the round</option><option value="flat">flat, turning each row</option></select></label>
-        </div>
-        {result.error && <p className="error" role="alert">{result.error}</p>}
-        {result.fabric && (
-          <>
-            {yarnOk ? <StitchExplorer fabric={result.fabric} /> : <p className="note">The yarn-path view draws knit and purl so far. Shaping stitches show in the chart until their loop geometry is added and reviewed.</p>}
-            <figure className="chart"><figcaption>Chart, right side · blank = knit, dot = purl</figcaption><ChartView fabric={result.fabric} /></figure>
-          </>
-        )}
-      </section>
-
-      <section className="panel">
-        <h2>Beanie calculator</h2>
-        <div className="fields">
-          <label htmlFor="gauge">Stitches per 10 cm<input id="gauge" type="number" min={8} max={40} value={gauge} onChange={(e) => setGauge(+e.target.value)} /></label>
-          <label htmlFor="head">Head, cm<input id="head" type="number" min={30} max={70} value={head} onChange={(e) => setHead(+e.target.value)} /></label>
-        </div>
-        {hat ? (
-          <>
-            <p>Cast on <b>{hat.castOn}</b> stitches. The hat measures {hat.finishedCm} cm around and stretches to fit. The crown has {hat.sections} wedges.</p>
-            <ol className="steps">{hat.steps.map((s) => <li key={s.title}><b>{s.title}</b><span>{s.text}</span><code>{s.recipe}</code></li>)}</ol>
-          </>
-        ) : <p className="error">Enter a gauge between 8 and 40 and a head size between 30 and 70 cm.</p>}
-      </section>
-    </main>
+    <StoreContext.Provider value={{ state, set }}>
+      <main>
+        {tab === 'learn' && (lesson ? <Lesson id={lesson} back={() => setLesson(null)} open={setLesson} /> : <Learn open={setLesson} />)}
+        {tab === 'make' && (project ? <Builder id={project} back={() => setProject(null)} /> : <Projects open={setProject} />)}
+        {tab === 'practice' && <Practice />}
+        {tab === 'lab' && <Lab />}
+        {tab === 'coach' && <Coach />}
+      </main>
+      <nav className="tabs" aria-label="Sections">
+        {TABS.map(([id, name, icon]) => (
+          <button key={id} aria-current={tab === id} onClick={() => { setTab(id); setLesson(null); setProject(null) }}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d={icon} /></svg>{name}
+          </button>
+        ))}
+      </nav>
+    </StoreContext.Provider>
   )
 }
