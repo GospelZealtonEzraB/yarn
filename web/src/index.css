@@ -136,3 +136,10 @@ figure svg{overflow:hidden}
 .t-yarn.work{stroke:var(--ya)}.t-edge.work{stroke:var(--ya-e)}
 .t-yarn.old{stroke:var(--yb)}.t-edge.old{stroke:var(--yb-e)}
 .t-yarn.rest{stroke:var(--yc)}.t-edge.rest{stroke:var(--yc-e)}
+.t-halo{stroke:var(--surface2);stroke-width:7.6;stroke-linecap:butt}
+.t-halo.needle{stroke-width:9.5}
+.t-arrow{stroke:var(--hot);stroke-linecap:round;transition:opacity .3s}
+.t-arrowhead{fill:var(--hot);stroke:none}
+.t-labels{transition:opacity .3s}
+.t-labels text{font-family:"DM Sans",system-ui,sans-serif;font-weight:500;fill:var(--ink);stroke:var(--surface2);paint-order:stroke;stroke-linejoin:round}
+@media (prefers-reduced-motion:reduce){.t-arrow,.t-labels{transition:none}}

@@ -31,7 +31,14 @@ export interface Frame {
   old: { back: Strand; front: Strand }
   /** How many unworked stitches are still on the left needle, not counting the one being worked. */
   waiting: number
+  view: View
+  arrow?: P[]
+  labels?: Label[]
 }
+/** The visible area for a step, as x, y, width, height. Every view is 5:3 so the picture never changes shape. */
+export type View = [number, number, number, number]
+/** A name written on the picture. `side` says which way the text runs from its anchor point. */
+export interface Label { at: P; text: string; side: 'start' | 'end' }
 export interface Technique { id: 'knit' | 'purl'; name: string; frames: Frame[] }
 
 /** Depth layers, back to front. */
@@ -83,23 +90,23 @@ const K_HAND: P = [332, 36]
 export const KNIT: Technique = {
   id: 'knit', name: 'The knit stitch',
   frames: [
-    { title: 'Ready', text: 'Stitches wait on the left needle. The working yarn hangs behind the needles, running to your right hand.',
+    { title: 'Ready', view: [62, 36, 250, 150], labels: [{ at: [66, 96], text: 'left needle', side: 'start' }, { at: [252, 126], text: 'right needle', side: 'end' }, { at: [306, 62], text: 'working yarn, behind', side: 'end' }], text: 'Stitches wait on the left needle. The working yarn hangs behind the needles, running to your right hand.',
       ...READY, needleZ: Z.rightFront, old: OLD_ON, waiting: 3,
       yarn: [s(Z.behind, foot(READY.tip, READY.angle), [296, 140], [304, 112]), s(Z.behind, [304, 112], [310, 96], [316, 80]),
         s(Z.behind, [316, 80], [321, 66], [325, 54]), s(Z.behind, [325, 54], [329, 44], K_HAND)] },
-    { title: 'In through the front door', text: 'The right needle goes into the first stitch from left to right. It passes behind the front leg of the stitch and ends up behind the left needle.',
+    { title: 'In through the front door', view: [92, 46, 150, 90], arrow: [[204, 130], [186, 104], [168, 80]], labels: [{ at: [152, 60], text: 'tip ends up behind', side: 'start' }, { at: [174, 132], text: 'front leg', side: 'start' }], text: 'The right needle goes into the first stitch from left to right. It passes behind the front leg of the stitch and ends up behind the left needle.',
       ...K_IN, needleZ: 2, old: OLD_ON, waiting: 3,
       yarn: [s(Z.behind, foot(K_IN.tip, K_IN.angle), [196, 118], [215, 98]), s(Z.behind, [215, 98], [235, 85], [255, 73]),
         s(Z.behind, [255, 73], [275, 62], [295, 52]), s(Z.behind, [295, 52], [315, 43], K_HAND)] },
-    { title: 'Once around the back', text: 'The yarn comes from behind, forward between the two needles, and over the right needle from left to right.',
+    { title: 'Once around the back', view: [92, 46, 150, 90], arrow: [[134, 106], [131, 86], [146, 76], [164, 80]], labels: [{ at: [240, 58], text: 'yarn comes up between the needles', side: 'end' }], text: 'The yarn comes from behind, forward between the two needles, and over the right needle from left to right.',
       ...K_IN, needleZ: 2, old: OLD_ON, waiting: 3,
       yarn: [s(Z.behind, foot(K_IN.tip, K_IN.angle), [150, 120], [143, 97]), s(2.5, [143, 97], [146, 88], [157, 86]),
         s(Z.behind, [157, 86], [175, 78], [200, 68]), s(Z.behind, [200, 68], [270, 48], K_HAND)] },
-    { title: 'Peek through the window', text: 'The right needle draws back toward you through the old stitch, bringing the wrapped yarn with it as a new loop.',
+    { title: 'Peek through the window', view: [96, 66, 150, 90], arrow: [[136, 86], [133, 104], [140, 120]], labels: [{ at: [176, 116], text: 'new loop', side: 'start' }], text: 'The right needle draws back toward you through the old stitch, bringing the wrapped yarn with it as a new loop.',
       ...K_THROUGH, needleZ: Z.rightFront, old: OLD_ON, waiting: 3,
       yarn: [s(Z.behind, foot(K_THROUGH.tip, K_THROUGH.angle), [172, 130], [158, 112]), s(6.5, [158, 112], [151, 121], [156, 131]),
         s(Z.behind, [156, 131], [162, 122], [156, 111]), s(Z.behind, [156, 111], [230, 62], K_HAND)] },
-    { title: 'Off jumps Jack', text: 'The old stitch slides off the left needle and hangs below the new one. The new stitch is on the right needle, right leg in front.',
+    { title: 'Off jumps Jack', view: [128, 72, 150, 90], arrow: [[162, 98], [176, 92], [190, 96]], labels: [{ at: [214, 112], text: 'new stitch', side: 'start' }, { at: [214, 150], text: 'old stitch', side: 'start' }], text: 'The old stitch slides off the left needle and hangs below the new one. The new stitch is on the right needle, right leg in front.',
       ...DONE, needleZ: Z.rightFront, waiting: 3,
       // A knit loop comes forward through the old stitch, so the old stitch is drawn behind everything.
       old: { back: s(-1, ...off.back), front: s(-1, ...off.front) },
@@ -115,23 +122,23 @@ const P_HAND: P = [300, 224]
 export const PURL: Technique = {
   id: 'purl', name: 'The purl stitch',
   frames: [
-    { title: 'Yarn in front', text: 'Before a purl, the working yarn hangs in front of the needles, toward you.',
+    { title: 'Yarn in front', view: [62, 56, 250, 150], labels: [{ at: [66, 96], text: 'left needle', side: 'start' }, { at: [250, 128], text: 'right needle', side: 'end' }, { at: [286, 200], text: 'working yarn, in front', side: 'end' }], text: 'Before a purl, the working yarn hangs in front of the needles, toward you.',
       ...READY, needleZ: Z.rightFront, old: OLD_ON, waiting: 3,
       yarn: [s(Z.front, foot(READY.tip, READY.angle), [288, 185], [291, 196]), s(Z.front, [291, 196], [294, 204], [296, 210]),
         s(Z.front, [296, 210], [298, 216], [299, 220]), s(Z.front, [299, 220], [300, 222], P_HAND)] },
-    { title: 'In from the right', text: 'The right needle goes into the first stitch from right to left. It passes behind the front leg and its tip ends up in front of the left needle.',
+    { title: 'In from the right', view: [92, 52, 150, 90], arrow: [[208, 142], [184, 128], [158, 114]], labels: [{ at: [150, 68], text: 'tip ends up in front', side: 'start' }], text: 'The right needle goes into the first stitch from right to left. It passes behind the front leg and its tip ends up in front of the left needle.',
       ...P_IN, needleZ: 4, old: OLD_ON, waiting: 3,
       yarn: [s(Z.front, foot(P_IN.tip, P_IN.angle), [215, 165], [240, 185]), s(Z.front, [240, 185], [258, 198], [272, 207]),
         s(Z.front, [272, 207], [283, 214], [291, 219]), s(Z.front, [291, 219], [296, 222], P_HAND)] },
-    { title: 'Over the top', text: 'The yarn goes up over the top of the right needle, down behind it between the two needles, and back to the front.',
+    { title: 'Over the top', view: [92, 52, 150, 90], arrow: [[168, 112], [164, 94], [152, 80], [138, 82]], labels: [{ at: [240, 64], text: 'then down behind the needle', side: 'end' }], text: 'The yarn goes up over the top of the right needle, down behind it between the two needles, and back to the front.',
       ...P_IN, needleZ: 4, old: OLD_ON, waiting: 3,
       yarn: [s(Z.front, foot(P_IN.tip, P_IN.angle), [170, 128], [157, 110]), s(Z.front, [157, 110], [153, 99], [151, 89]),
         s(Z.between, [151, 89], [143, 90], [144, 101]), s(Z.front, [144, 101], [200, 190], P_HAND)] },
-    { title: 'Push it through', text: 'The right needle tip moves backward through the old stitch, carrying the wrapped yarn with it as a new loop behind the left needle.',
+    { title: 'Push it through', view: [96, 46, 150, 90], arrow: [[146, 108], [140, 92], [146, 76]], labels: [{ at: [244, 64], text: 'new loop, behind the left needle', side: 'end' }], text: 'The right needle tip moves backward through the old stitch, carrying the wrapped yarn with it as a new loop behind the left needle.',
       ...P_THROUGH, needleZ: 0.5, old: OLD_ON, waiting: 3,
       yarn: [s(Z.front, foot(P_THROUGH.tip, P_THROUGH.angle), [172, 128], [160, 113]), s(0.7, [160, 113], [164, 86], [154, 112]),
         s(Z.front, [154, 112], [152, 120], [152, 128]), s(Z.front, [152, 128], [200, 195], P_HAND)] },
-    { title: 'Slide it off', text: 'The old stitch slides off the left needle. Its top now lies across the front of the new stitch: that is the purl bump.',
+    { title: 'Slide it off', view: [128, 72, 150, 90], arrow: [[162, 98], [176, 92], [190, 96]], labels: [{ at: [214, 112], text: 'new stitch', side: 'start' }, { at: [214, 138], text: 'purl bump', side: 'start' }], text: 'The old stitch slides off the left needle. Its top now lies across the front of the new stitch: that is the purl bump.',
       ...DONE, needleZ: Z.rightFront, waiting: 3,
       // A purl loop goes backward through the old stitch, so the top of the old stitch is drawn in front.
       old: { back: s(Z.backLeg, ...off.back), front: s(8, ...off.front) },
@@ -145,8 +152,8 @@ export const PURL: Technique = {
 export interface SceneNeedle { from: P; to: P; z: number }
 export interface SceneStrand { pts: P[]; z: number; cls: 'work' | 'old' | 'rest' }
 export interface Scene { needles: SceneNeedle[]; strands: SceneStrand[] }
-export interface DiagramStep { title: string; text: string; scene: Scene }
-export interface Diagram { id: string; name: string; steps: DiagramStep[]; /** Visible area as x, y, width, height. */ view: [number, number, number, number] }
+export interface DiagramStep { title: string; text: string; scene: Scene; view: View; /** The movement to make in this step. */ arrow?: P[]; labels?: Label[] }
+export interface Diagram { id: string; name: string; steps: DiagramStep[] }
 
 const NEEDLE_LENGTH = 190
 /** A stitch sitting on a needle at p: back leg behind the needle, front leg in front. */
@@ -178,7 +185,7 @@ export function sceneOf(f: Frame): Scene {
     strands,
   }
 }
-const diagram = (t: Technique): Diagram => ({ id: t.id, name: t.name, view: [44, 34, 276, 166], steps: t.frames.map((f) => ({ title: f.title, text: f.text, scene: sceneOf(f) })) })
+const diagram = (t: Technique): Diagram => ({ id: t.id, name: t.name, steps: t.frames.map((f) => ({ title: f.title, text: f.text, scene: sceneOf(f), view: f.view, arrow: f.arrow, labels: f.labels })) })
 
 /*
  * Bind-off. Two stitches are on the right needle: A was knitted first and sits
@@ -217,12 +224,12 @@ const A_LIFTED = { back: [...A_FEET.back, [222, 104], [212, 84]] as P[], front: 
 const A_DROPPED = { back: [[250, 190], [246, 170], [244, 152], [250, 141]] as P[], front: [[250, 141], [262, 137], [270, 146], [272, 165], [274, 190]] as P[] }
 
 export const BINDOFF: Diagram = {
-  id: 'bindoff', name: 'Bind off', view: [34, 40, 300, 172],
+  id: 'bindoff', name: 'Bind off',
   steps: [
-    { title: 'Knit two stitches', text: 'Two stitches sit on the right needle. The blue one was knitted first, so it is further from the tip.', scene: bindOffScene([0, 0], A_ON) },
-    { title: 'Pick up the first stitch', text: 'Push the left needle tip into the blue stitch from left to right, in front of the right needle.', scene: bindOffScene([74, 32], A_ON) },
-    { title: 'Lift it over', text: 'Lift the blue stitch over the pink one and over the tip of the right needle.', scene: bindOffScene([18, -14], A_LIFTED) },
-    { title: 'Let it go', text: 'Slide the left needle out. The blue stitch now lies around the base of the pink one. One stitch is bound off. Knit one more and repeat.', scene: bindOffScene([0, 0], A_DROPPED) },
+    { title: 'Knit two stitches', view: [130, 56, 220, 132], labels: [{ at: [236, 112], text: 'second stitch', side: 'end' }, { at: [292, 150], text: 'first stitch', side: 'start' }, { at: [134, 84], text: 'left needle', side: 'start' }], text: 'Two stitches sit on the right needle. The blue one was knitted first, so it is further from the tip.', scene: bindOffScene([0, 0], A_ON) },
+    { title: 'Pick up the first stitch', view: [150, 62, 190, 114], arrow: [[214, 150], [238, 146], [258, 140]], text: 'Push the left needle tip into the blue stitch from left to right, in front of the right needle.', scene: bindOffScene([74, 32], A_ON) },
+    { title: 'Lift it over', view: [150, 62, 190, 114], arrow: [[284, 128], [262, 96], [236, 78]], labels: [{ at: [204, 74], text: 'over the tip', side: 'end' }], text: 'Lift the blue stitch over the pink one and over the tip of the right needle.', scene: bindOffScene([18, -14], A_LIFTED) },
+    { title: 'Let it go', view: [150, 62, 190, 114], arrow: [[222, 90], [204, 94], [186, 98]], labels: [{ at: [282, 152], text: 'bound off', side: 'start' }], text: 'Slide the left needle out. The blue stitch now lies around the base of the pink one. One stitch is bound off. Knit one more and repeat.', scene: bindOffScene([0, 0], A_DROPPED) },
   ],
 }
 

@@ -194,6 +194,21 @@ describe('technique diagrams', () => {
 })
 
 describe('generic diagrams', () => {
+  it('every step has a 5:3 view, and its arrow and labels sit inside that view', () => {
+    for (const d of Object.values(DIAGRAMS)) for (const step of d.steps) {
+      const [x, y, w, h] = step.view
+      expect(w / h).toBeCloseTo(5 / 3, 1)
+      const inside = (p: number[]) => p[0] >= x && p[0] <= x + w && p[1] >= y && p[1] <= y + h
+      for (const p of step.arrow ?? []) expect(inside(p), `${d.id} ${step.title} arrow`).toBe(true)
+      for (const l of step.labels ?? []) {
+        expect(inside(l.at), `${d.id} ${step.title} label ${l.text}`).toBe(true)
+        // Rough text width, so a label never runs off the edge of the picture.
+        const reach = l.text.length * 3.3 * (w / 150)
+        const far = l.side === 'start' ? l.at[0] + reach : l.at[0] - reach
+        expect(far >= x && far <= x + w, `${d.id} ${step.title} label "${l.text}" fits`).toBe(true)
+      }
+    }
+  })
   it('every step of a diagram has the same parts, so steps can blend into each other', () => {
     for (const d of Object.values(DIAGRAMS)) for (let i = 1; i < d.steps.length; i++) {
       const a = d.steps[i - 1].scene, b = d.steps[i].scene
