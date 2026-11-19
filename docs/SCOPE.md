@@ -18,20 +18,20 @@ that produces the instructions.
 ## Version 1 gaps, known and deliberate
 
 - **Movement diagrams exist for knit and purl only**, showing needles and yarn
-  without hands. They follow published written descriptions and have not been
-  checked by an experienced knitter or against video. Cast-on, bind-off and
-  the rest have written steps only.
+  without hands. Needle positions and yarn path were checked against the text
+  and step photos of the Nimble Needles knit and purl tutorials. No knitter has
+  reviewed them. Cast-on, bind-off and the rest have written steps only.
 - **Lesson and pattern text has not been test-knitted.** The arithmetic is
   tested by the engine. The wording needs a knitter's read-through.
-- **Yarn-path view draws knit and purl only.** Decreases appear in the chart
-  and the piece picture, not loop by loop.
+- **Yarn-path view draws knit, purl, k2tog and ssk.** Yarn over and M1
+  increases appear in the chart only.
 - **Photo coach is a placeholder screen.**
 - **Row gauge is estimated** from stitch gauge. Steps say to trust the tape measure.
 
 ## Version 2: next
 
 1. Hosting: the GitHub Pages workflow is in place. Pages must be switched on in the repository settings (Settings, Pages, Source: GitHub Actions).
-2. Loop geometry for k2tog, ssk, yo, M1L, M1R in the yarn-path view.
+2. Loop geometry for yo, M1L and M1R in the yarn-path view (k2tog and ssk are done).
 3. Stage 3 lessons (in the round, decreases, double-pointed needles).
 4. Movement diagrams for cast-on, bind-off, k2tog and ssk, and a knitter's review of all of them.
 5. Ribbed scarf and fingerless mitts templates.

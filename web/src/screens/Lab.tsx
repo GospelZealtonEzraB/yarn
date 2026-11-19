@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { knit, type Construction } from '../engine/fabric'
 import { ChartView } from '../ui/FabricView'
+import { canDraw } from '../engine/yarnPath'
 import { StitchExplorer } from '../ui/StitchExplorer'
 
 const PRESETS: [string, string, Construction][] = [
@@ -8,7 +9,8 @@ const PRESETS: [string, string, Construction][] = [
   ['Garter', 'K1', 'flat'],
   ['2×2 rib', 'K2, P2', 'round'],
   ['Seed stitch', 'K1, P1', 'flat'],
-  ['Crown decrease', '*K2, k2tog; rep from *', 'round'],
+  ['Right-leaning decrease', '*K2, k2tog; rep from *', 'round'],
+  ['Left-leaning decrease', '*K2, ssk; rep from *', 'round'],
 ]
 
 export function Lab() {
@@ -16,11 +18,12 @@ export function Lab() {
   const [mode, setMode] = useState<Construction>('round')
   const result = useMemo(() => {
     try {
-      const rows = /k2tog|ssk|yo|m1/i.test(recipe) ? [recipe] : Array(8).fill(recipe)
+      // A shaping row is shown once, with plain rows around it so the lean is visible.
+      const rows = /k2tog|ssk|yo|m1/i.test(recipe) ? ['K1', 'K1', 'K1', recipe, 'K1', 'K1', 'K1'] : Array(8).fill(recipe)
       return { fabric: knit(12, rows, mode) }
     } catch (e) { return { error: (e as Error).message } }
   }, [recipe, mode])
-  const yarnOk = result.fabric?.rows.every((r) => r.every((s) => s === 'k' || s === 'p'))
+  const yarnOk = result.fabric && canDraw(result.fabric)
   return (
     <>
       <header className="top">
@@ -41,7 +44,7 @@ export function Lab() {
         {result.error && <p className="error" role="alert">{result.error}</p>}
         {result.fabric && (
           <>
-            {yarnOk ? <StitchExplorer fabric={result.fabric} /> : <p className="sub">The yarn-path view draws knit and purl so far. Shaping stitches show in the chart until their loop geometry is added and reviewed.</p>}
+            {yarnOk ? <StitchExplorer fabric={result.fabric} /> : <p className="sub">The yarn-path view draws knit, purl, k2tog and ssk. Other stitches show in the chart only.</p>}
             <figure className="chart"><figcaption>Chart, right side · blank = knit, dot = purl</figcaption><ChartView fabric={result.fabric} /></figure>
           </>
         )}

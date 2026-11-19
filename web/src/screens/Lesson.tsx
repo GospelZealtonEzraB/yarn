@@ -24,7 +24,7 @@ export function Lesson({ id, back, open }: { id: string; back: () => void; open:
         <section className="card">
           <h2>Watch the movement</h2>
           <TechniqueView key={lesson.technique} technique={TECHNIQUES[lesson.technique]} />
-          <p className="sub">A diagram, not a photo. It follows published written descriptions of the stitch and has not yet been checked by an experienced knitter, so compare it with a video the first time.</p>
+          <p className="sub">A diagram, not a photo. Needle positions and the path of the yarn were checked against the step-by-step text and photos of a published tutorial. An experienced knitter has not reviewed it yet.</p>
         </section>
       )}
       <ol className="steps">{lesson.steps.map((s, n) => <li key={n}>{s}</li>)}</ol>

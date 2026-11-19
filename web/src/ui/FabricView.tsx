@@ -28,7 +28,7 @@ export function YarnSwatch({ fabric }: { fabric: Fabric }) {
   const { spans, width, height } = useMemo(() => yarnSpans(fabric), [fabric])
   return (
     <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Knitted swatch, right side facing">
-      {([-1, 0, 1] as const).map((z) => {
+      {[...new Set(spans.map((s) => s.z))].sort((a, b) => a - b).map((z) => {
         const layer = spans.filter((s) => s.z === z)
         return (
           <g key={z} fill="none">

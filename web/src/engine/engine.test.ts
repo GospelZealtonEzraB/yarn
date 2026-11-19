@@ -54,7 +54,42 @@ describe('yarn path', () => {
     }
   })
   it('says so instead of drawing a stitch it cannot draw correctly', () =>
-    expect(() => yarnSpans(knit(4, ['*K2, k2tog; rep from *'], 'round'))).toThrow(/chart view/))
+    expect(() => yarnSpans(knit(4, ['*K1, M1L, K1; rep from *'], 'round'))).toThrow(/chart view/))
+})
+
+describe('shaping in the yarn path', () => {
+  const headZ = (f: ReturnType<typeof yarnSpans>, row: number, col: number) => f.spans.find((s) => s.row === row && s.col === col && s.part === 3)!.z
+  it('k2tog passes through two loops and the left one lies on top (leans right)', () => {
+    const f = yarnSpans(knit(4, ['K1', '*K2, k2tog; rep from *'], 'round'))
+    // Rows are in viewing order, so the k2tog worked last sits at the left: columns 0 and 1 below feed it.
+    const dec = f.stitches[1].find((s) => s.type === 'k2tog')!
+    expect(dec.parents).toHaveLength(2)
+    const [l, r] = dec.parents
+    expect(headZ(f, 0, l)).toBeGreaterThan(headZ(f, 0, r))
+    expect(f.stitches[0][l].headX).toBe(dec.x)
+    expect(f.stitches[0][r].headX).toBe(dec.x)
+    expect(dec.x).toBe((f.stitches[0][l].x + f.stitches[0][r].x) / 2)
+  })
+  it('ssk is the mirror: the right loop lies on top (leans left)', () => {
+    const f = yarnSpans(knit(4, ['K1', '*K2, ssk; rep from *'], 'round'))
+    const [l, r] = f.stitches[1].find((s) => s.type === 'ssk')!.parents
+    expect(headZ(f, 0, r)).toBeGreaterThan(headZ(f, 0, l))
+  })
+  it('the new loop of a decrease still comes out in front of both loops below', () => {
+    const f = yarnSpans(knit(4, ['K1', '*K2, k2tog; rep from *'], 'round'))
+    const dec = f.stitches[1].find((s) => s.type === 'k2tog')!
+    const leg = f.spans.find((s) => s.row === 1 && s.col === dec.col && s.part === 1)!.z
+    for (const p of dec.parents) expect(leg).toBeGreaterThan(headZ(f, 0, p))
+  })
+  it('yarn over is refused for now rather than drawn crowded', () =>
+    expect(() => yarnSpans(knit(4, ['K1', '*K2, yo, k2tog; rep from *'], 'round'))).toThrow(/chart view/))
+  it('every loop below a row is claimed by exactly one stitch above', () => {
+    const f = yarnSpans(knit(12, ['K1', '*K2, k2tog; rep from *', 'K1', '*K1, ssk; rep from *', 'K1'], 'round'))
+    for (let r = 0; r < f.stitches.length - 1; r++) {
+      expect(f.stitches[r].every((s) => s.child !== null)).toBe(true)
+      expect(f.stitches[r + 1].flatMap((s) => s.parents)).toEqual(f.stitches[r].map((s) => s.col))
+    }
+  })
 })
 
 describe('beanie template', () => {
