@@ -8,6 +8,8 @@ import { beanie, crownRecipes } from '../patterns/beanie'
 import { needleFor, PROJECTS } from '../patterns/catalog'
 import { LESSONS, STAGES } from '../content/lessons'
 import { EXTRAS } from '../content/extras'
+import { balanced, repeatWidth, rowsFor, STITCH_PATTERNS } from '../patterns/stitches'
+import { classify } from './product'
 import { withMistake, workingOrder } from './games'
 
 const look = (rows: string[][]) => rows.map((r) => r.join(''))
@@ -415,5 +417,52 @@ describe('finished-product picture', () => {
     let last = -1
     for (let r = 0; r <= fabric.rows.length; r++) { const u = reached(shape, r); expect(u).toBeGreaterThanOrEqual(last); last = u }
     expect(reached(shape, shape.sections[0].rows[1])).toBe(5) // the brim ends 5 cm up
+  })
+})
+
+describe('stitch-pattern library', () => {
+  const view = (chart: string[], r: number, n: number) => Array.from({ length: n }, (_, c) => chart[r % chart.length][c % chart[0].length])
+  it('every pattern, worked from its derived instructions, reproduces its own chart flat and in the round', () => {
+    for (const p of STITCH_PATTERNS) for (const how of ['flat', 'round'] as const) for (const n of [repeatWidth(p) * 3, balanced(p, 24), 17, 30]) {
+      if (how === 'round' && n % repeatWidth(p) !== 0) continue // a round must hold whole repeats
+      const rows = rowsFor(p, n, p.chart.length * 2, how)
+      const f = knit(n, rows, how)
+      f.rows.forEach((row, r) => expect(row, `${p.id} ${how} over ${n}, row ${r + 1}`).toEqual(view(p.chart, r, n)))
+    }
+  })
+  it('charts are rectangular and use only knit and purl', () => {
+    for (const p of STITCH_PATTERNS) {
+      expect(new Set(p.chart.map((r) => r.length)).size, p.id).toBe(1)
+      expect(p.chart.join(''), p.id).toMatch(/^[kp]+$/)
+    }
+  })
+  it('a balanced cast-on has matching edges on the right side', () => {
+    for (const p of STITCH_PATTERNS) {
+      const n = balanced(p, 30), w = repeatWidth(p)
+      const first = view(p.chart, 0, n)
+      if (w > 1) expect(first.slice(0, w / 2), p.id).toEqual(first.slice(-w / 2))
+    }
+  })
+  it('recognises the surface each chart makes', () => {
+    const kind = (id: string) => classify(STITCH_PATTERNS.find((p) => p.id === id)!.chart)
+    expect([kind('stockinette'), kind('garter'), kind('rib2'), kind('seed'), kind('basket'), kind('ridge')]).toEqual(['stockinette', 'garter', 'rib', 'textured', 'textured', 'textured'])
+  })
+  it('every project works in every stitch it offers, at every gauge, and its rows go into words', () => {
+    for (const p of PROJECTS) for (const style of p.styles ?? []) for (let gauge = 10; gauge <= 34; gauge += 2) {
+      const settings = { gauge, headCm: 56, handCm: 19, yarn: 'Test', needle: '5 mm' }
+      let pattern
+      try { pattern = p.build!(settings, style) } catch (e) { expect((e as Error).message, `${p.id} ${style}`).toMatch(/Choose another stitch/); continue }
+      const f = knit(pattern.castOn, pattern.steps.flatMap((s) => s.rows ?? []), pattern.construction)
+      expect(f.rows.length).toBeGreaterThan(10)
+      for (const step of pattern.steps) for (const row of new Set(step.rows ?? [])) expect(inWords(row)).toMatch(/\.$/)
+      // The styled section really is knitted in that stitch.
+      const styled = pattern.steps.find((s) => s.chart && s.rows && JSON.stringify(s.chart) === JSON.stringify(STITCH_PATTERNS.find((x) => x.id === style)!.chart))
+      expect(styled, `${p.id} ${style}`).toBeDefined()
+    }
+  })
+  it('the default stitch of every project is one it can always make', () => {
+    for (const p of PROJECTS) if (p.styles) for (let gauge = 10; gauge <= 34; gauge++) {
+      expect(() => p.build!({ gauge, headCm: 56, handCm: 19, yarn: 'Test', needle: '5 mm' }, p.styles![0])).not.toThrow()
+    }
   })
 })

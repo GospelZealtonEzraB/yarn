@@ -12,9 +12,11 @@ export interface State {
   quiz: { right: number; asked: number }
   /** How many times each project has been finished. */
   made: Record<string, number>
+  /** The stitch pattern chosen for each project. */
+  styles: Record<string, string>
 }
 
-export const INITIAL: State = { yarn: 'worsted', gauge: 18, headCm: 56, handCm: 19, lessons: {}, projects: {}, quiz: { right: 0, asked: 0 }, made: {} }
+export const INITIAL: State = { yarn: 'worsted', gauge: 18, headCm: 56, handCm: 19, lessons: {}, projects: {}, quiz: { right: 0, asked: 0 }, made: {}, styles: {} }
 const KEY = 'loopwise.v1'
 
 /** Progress lives on this device only. Storage can be unavailable, and the app must still work. */

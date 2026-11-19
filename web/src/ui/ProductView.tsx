@@ -30,7 +30,7 @@ export function ProductView({ product, done, current, unit }: { product: Product
       const [x1, y1] = pt(s.cm[0], v), [x2, y2] = pt(end, v)
       d += `M${x1.toFixed(1)},${y1.toFixed(1)}L${x2.toFixed(1)},${y2.toFixed(1)}`
     }
-    else for (let u = s.cm[0] + 3 / k; u < end; u += 4 / k) {
+    else for (let u = s.cm[0] + 3 / k; u < end; u += (s.texture === 'textured' ? 5 : 4) / k) {
       const [x1, y1] = pt(u, -W / 2), [x2, y2] = pt(u, W / 2)
       d += `M${x1.toFixed(1)},${y1.toFixed(1)}L${x2.toFixed(1)},${y2.toFixed(1)}`
     }
@@ -55,7 +55,7 @@ export function ProductView({ product, done, current, unit }: { product: Product
           return (
             <g key={s.step}>
               <rect {...band(s.cm[0], end)} className={s.step === current ? 'prod-now' : 'prod-done'} />
-              <path d={lines(s, at)} className="prod-texture" />
+              <path d={lines(s, at)} className={`prod-texture ${s.texture}`} />
             </g>
           )
         })}

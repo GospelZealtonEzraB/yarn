@@ -8,8 +8,8 @@ import type { Pattern } from '../patterns/types'
  * line. The picture and the progress marker both come from the same stitch
  * counts and section lengths as the instructions.
  */
-export type Texture = 'rib' | 'garter' | 'stockinette'
-export interface Section { step: number; title: string; rows: [number, number]; cm: [number, number]; texture: Texture }
+export type Texture = 'rib' | 'garter' | 'stockinette' | 'textured'
+export interface Section { step: number; title: string; rows: [number, number]; cm: [number, number]; texture: Texture; /** Right-side stitch chart, when the pattern supplies one. */ chart?: string[] }
 export interface Product {
   sections: Section[]
   /** Outline as [u, v] points, up one side and back down the other. */
@@ -17,6 +17,14 @@ export interface Product {
   lengthCm: number
   widthCm: number
   marks: { fromCm: number; toCm: number; label: string }[]
+}
+
+/** What kind of surface a chart makes: plain, columns, ridges, or something busier. */
+export function classify(chart: string[]): Texture {
+  if (chart.every((r) => !r.includes('p'))) return 'stockinette'
+  if (chart.every((r) => r === chart[0])) return 'rib'
+  if (chart.length === 2 && chart.every((r) => new Set(r).size === 1)) return 'garter'
+  return 'textured'
 }
 
 function texture(fabric: Fabric, from: number): Texture {
@@ -31,7 +39,7 @@ export function product(pattern: Pattern, fabric: Fabric, gauge: number): Produc
   pattern.steps.forEach((st, i) => {
     if (!st.rows?.length) return
     if (!st.cm) throw new Error(`Step "${st.title}" has rows but no length.`)
-    sections.push({ step: i, title: st.title, rows: [row, row + st.rows.length], cm: [cm, cm + st.cm], texture: texture(fabric, row) })
+    sections.push({ step: i, title: st.title, rows: [row, row + st.rows.length], cm: [cm, cm + st.cm], texture: st.chart ? classify(st.chart) : texture(fabric, row), chart: st.chart })
     row += st.rows.length
     cm += st.cm
   })

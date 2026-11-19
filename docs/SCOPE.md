@@ -9,11 +9,22 @@ that produces the instructions.
 | Area | What works |
 |---|---|
 | Learn | Yarn setup (weight, gauge, head size). Six-stage path. 16 written lessons covering stages 1 to 3, each a one-step-at-a-time follow-along led by a picture: a movement diagram synced to the step, or a drawn picture of the result. Each has a success check, a drill to do with yarn, and troubleshooting. |
-| Make | Garter scarf, ribbed scarf, fingerless mitts (knitted flat and seamed) and ribbed beanie. Each project opens with the finished piece, an illustrated kit list and the lessons it needs. Each row shows stitch tiles, a plain sentence, a close-up of the fabric and the stitch count, and each step links to its how-to. All resize to any gauge from 10 to 34 stitches per 10 cm. |
+| Make | Garter scarf, textured scarf, fingerless mitts (knitted flat and seamed) and ribbed beanie. The textured scarf, the beanie body and the mitt hand can each be knitted in a choice of stitch patterns from a ten-pattern library. Each project opens with the finished piece, an illustrated kit list and the lessons it needs. Each row shows stitch tiles, a plain sentence, a close-up of the fabric and the stitch count, and each step links to its how-to. All resize to any gauge from 10 to 34 stitches per 10 cm. |
 | Practice | Four games: name that swatch, find the wrong stitch, chart reader (including wrong-side rows), and flashcards for 18 pattern abbreviations. |
 | Lab | Type any row of shorthand and see the yarn path and chart. Colour by row, stitch or depth, hide layers, zoom to one stitch, trace the yarn. |
 | Progress | Saved on the device. No account, no server. |
 | Install | Installable, works offline once hosted. |
+
+## Stitch-pattern library
+
+Ten knit-and-purl patterns: stockinette, garter, 1×1 rib, 2×2 rib, seed, moss,
+box, basketweave, broken rib and garter ridges. Each is defined once as a
+right-side chart. Flat and in-the-round instructions are derived from the
+chart, and the tests work every pattern from those instructions and check the
+result against the chart. Adding a pattern is one chart entry.
+
+Not in the library yet: anything needing more than knit and purl (cables,
+lace, slipped stitches) and colourwork.
 
 ## The builder picture
 

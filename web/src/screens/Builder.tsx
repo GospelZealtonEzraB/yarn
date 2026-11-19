@@ -5,6 +5,7 @@ import { product as shapeOf } from '../engine/product'
 import { inWords, parts, repeats } from '../engine/recipe'
 import { DIAGRAMS } from '../engine/technique'
 import { PROJECTS } from '../patterns/catalog'
+import { rowsFor, stitchPattern } from '../patterns/stitches'
 import { settingsOf, useStore } from '../store'
 import { PieceView, YarnSwatch } from '../ui/FabricView'
 import { CastOnPicture, KitIcon, RingPicture, RowTiles, SeamPicture } from '../ui/Pictures'
@@ -18,20 +19,26 @@ export function Builder({ id, back, openLesson }: { id: string; back: () => void
   const { state, set } = useStore()
   const project = PROJECTS.find((p) => p.id === id)!
   const [view, setView] = useState<'flat' | '3d' | 'worn'>('flat')
+  const style = state.styles[id] ?? project.styles?.[0]
+  // Some stitches need a stitch count this size does not give. Offer only the ones that work.
+  const usable = useMemo(() => (project.styles ?? []).filter((sid) => { try { project.build!(settingsOf(state), sid); return true } catch { return false } }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [project, state.gauge, state.headCm, state.handCm])
   const built = useMemo(() => {
     try {
-      const pattern = project.build!(settingsOf(state))
+      const pattern = project.build!(settingsOf(state), style)
       const fabric = knit(pattern.castOn, pattern.steps.flatMap((s) => s.rows ?? []), pattern.construction)
       return { pattern, fabric, shape: shapeOf(pattern, fabric, state.gauge) }
     } catch (e) { return { error: (e as Error).message } }
     // Only the numbers that size the pattern should rebuild it, not every progress tap.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [project, state.gauge, state.headCm, state.handCm])
+  }, [project, state.gauge, state.headCm, state.handCm, style])
 
   if (!built.pattern) return (
     <>
       <button className="back" onClick={back}>← All projects</button>
-      <div className="callout warn"><b>These numbers do not make a pattern</b><p>{built.error} Check your measurements on the Learn tab.</p></div>
+      <div className="callout warn"><b>These choices do not make a pattern</b><p>{built.error} Check your measurements on the Learn tab.</p></div>
+      {state.styles[id] && <button className="btn" onClick={() => set({ styles: { ...state.styles, [id]: project.styles![0] } })}>Go back to {stitchPattern(project.styles![0]).name}</button>}
     </>
   )
   const { pattern, fabric, shape } = built
@@ -96,6 +103,19 @@ export function Builder({ id, back, openLesson }: { id: string; back: () => void
             {solid && tube ? <Product3D product={shape} done={total} current={null} stitches={pattern.castOn} wornOnHead={worn} /> : <ProductView product={shape} done={total} current={null} unit={unit} />}
             <figcaption>What you are making · {pattern.fits}</figcaption>
           </figure>
+          {project.styles && style && (
+            <section className="card">
+              <h2>Choose your stitch</h2>
+              <p className="sub">For the {project.styledPart}. Everything else in the pattern stays the same.</p>
+              <div className="group">
+                {usable.map((sid) => (
+                  <button key={sid} className="chip" aria-pressed={sid === style} onClick={() => set({ styles: { ...state.styles, [id]: sid } })}>{stitchPattern(sid).name}</button>
+                ))}
+              </div>
+              <figure className="swatch-pick"><YarnSwatch fabric={knit(16, rowsFor(stitchPattern(style), 16, 8, 'round'), 'round')} /></figure>
+              <p className="sub"><b>{stitchPattern(style).name}.</b> {stitchPattern(style).note}</p>
+            </section>
+          )}
           <section className="card">
             <h2>Your kit</h2>
             <ul className="kit">{pattern.kit.map((k) => <li key={k.name}><KitIcon name={k.name} /><span>{k.name}</span><b>{k.qty}</b></li>)}</ul>

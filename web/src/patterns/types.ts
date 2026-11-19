@@ -14,6 +14,8 @@ export interface Step {
   help?: string[]
   /** One recipe per row or round in this step. The engine works these to draw the piece and to prove the counts. */
   rows?: string[]
+  /** The stitch chart this section follows, right side facing, for drawing its texture. */
+  chart?: string[]
   /** How long this section is when finished, in cm. Needed for every step that has rows. */
   cm?: number
   /** What tells the knitter to stop, since row counts are estimates. */

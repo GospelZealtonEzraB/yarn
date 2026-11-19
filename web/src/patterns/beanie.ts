@@ -1,4 +1,5 @@
 import { knit, type Fabric } from '../engine/fabric'
+import { repeatWidth, rowsFor, stitchPattern } from './stitches'
 import { stockinetteRows, type Pattern, type Settings } from './types'
 
 export interface BeanieInput {
@@ -48,10 +49,17 @@ export function crownRecipes(b: Beanie): string[] {
   return out.slice(0, -1)
 }
 
-export function beaniePattern(s: Settings): Pattern {
+export const BEANIE_STYLES = ['stockinette', 'seed', 'moss', 'box', 'brokenrib', 'ridge', 'rib2', 'basket']
+
+export function beaniePattern(s: Settings, style = 'stockinette'): Pattern {
   const b = beanie(s)
+  const st = stitchPattern(style)
+  if (b.castOn % repeatWidth(st) !== 0) throw new Error(`${st.name} needs a multiple of ${repeatWidth(st)} stitches, and this hat has ${b.castOn}. Choose another stitch.`)
   const rowG = stockinetteRows(s.gauge)
-  const rib = Math.round((5 * rowG) / 10), body = Math.round((9 * rowG) / 10)
+  const rib = Math.round((5 * rowG) / 10)
+  // Whole repeats of the pattern, so the crown starts cleanly.
+  const body = Math.max(Math.round((9 * s.gauge * st.rowFactor) / 10 / st.chart.length), 1) * st.chart.length
+  const plain = style === 'stockinette'
   const first = b.castOn / b.sections - 2
   const left = b.crownCounts[b.crownCounts.length - 1]
   return {
@@ -75,13 +83,15 @@ export function beaniePattern(s: Settings): Pattern {
       { title: 'Join in the round', picture: 'ring', help: ['round'], recipe: 'PM, join',
         text: 'Spread the stitches along the needle with every loop hanging the same way and no twist. Slip the marker onto the right needle, then knit the first stitch on the left needle to close the circle.',
         tip: 'A twisted join cannot be fixed later. Check twice before that first stitch.' },
-      { title: 'Knit the ribbed brim', help: ['rib'], recipe: '*K2, P2; rep from *', rows: Array(rib).fill('K2, P2'), cm: 5, until: 'the brim measures 5 cm',
+      { title: 'Knit the ribbed brim', help: ['rib'], recipe: '*K2, P2; rep from *', rows: Array(rib).fill('K2, P2'), chart: ['kkpp'], cm: 5, until: 'the brim measures 5 cm',
         text: 'Knit 2, purl 2, all the way round. Slip the marker across each time you reach it.',
         tip: 'Bring the yarn to the front before purling and to the back before knitting. Pass it between the needles, never over them.' },
-      { title: 'Knit the body', help: ['knit'], recipe: 'K all sts', rows: Array(body).fill('K1'), cm: 9, until: 'the hat measures 14 cm from the cast-on edge',
-        text: 'Knit every stitch of every round. Worked in the round, that gives smooth stockinette with no purling.',
+      { title: 'Knit the body', help: plain ? ['knit'] : ['purl', 'read'], recipe: plain ? 'K all sts' : `${st.name}, ${st.chart.length}-round repeat`,
+        rows: rowsFor(st, b.castOn, body, 'round'), chart: st.chart, cm: 9, until: 'the hat measures 14 cm from the cast-on edge',
+        text: plain ? 'Knit every stitch of every round. Worked in the round, that gives smooth stockinette with no purling.'
+          : `Work the body in ${st.name.toLowerCase()}. The card above shows each round as you reach it.`,
         tip: 'Try it on as you go. The stitches stretch safely on a circular needle.' },
-      { title: 'Shape the crown', help: ['k2tog', 'dpn'], recipe: `*K${first}, k2tog; rep from *`, rows: crownRecipes(b), cm: Math.round((crownRecipes(b).length / rowG) * 100) / 10, until: `${left} stitches remain`,
+      { title: 'Shape the crown', help: ['k2tog', 'dpn'], recipe: `*K${first}, k2tog; rep from *`, rows: crownRecipes(b), chart: ['k'], cm: Math.round((crownRecipes(b).length / rowG) * 100) / 10, until: `${left} stitches remain`,
         text: `Decrease round: knit ${first}, knit 2 together, repeat around (${b.crownCounts[0]} stitches left). Knit one plain round. Repeat both rounds, knitting one stitch fewer before each decrease.`,
         tip: 'Switch to double-pointed needles once the stitches no longer reach around the circular.' },
       { title: 'Close and finish', picture: 'done', help: ['weave'], recipe: 'Fasten off',

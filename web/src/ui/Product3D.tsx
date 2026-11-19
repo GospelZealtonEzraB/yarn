@@ -50,8 +50,14 @@ export function Product3D({ product, done, current, stitches, wornOnHead }: { pr
       else {
         c.copy(yarn)
         if (section.step !== current) c.lerp(ghost, 0.45) // finished sections are quieter than the one in progress
-        if (section.texture === 'rib' && col % 4 > 1) c.multiplyScalar(0.72) // purl columns sit back, so they read darker
-        if (section.texture === 'garter' && Math.floor(u * 2.4) % 2) c.multiplyScalar(0.8)
+        // Purl stitches sit back from the surface, so they read darker. The chart says which stitches those are.
+        const chart = section.chart
+        if (chart) {
+          const rows = section.rows[1] - section.rows[0]
+          const row = Math.min(Math.floor(((u - section.cm[0]) / (section.cm[1] - section.cm[0])) * rows), rows - 1)
+          const line = chart[Math.max(row, 0) % chart.length]
+          if (line[col % line.length] === 'p') c.multiplyScalar(0.72)
+        }
       }
       colours.set([c.r, c.g, c.b], (col * prof.length + i) * 3)
     }

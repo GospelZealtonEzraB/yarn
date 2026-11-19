@@ -25,7 +25,7 @@ export interface Stage { n: number; name: string; /** What the learner can do by
 
 export const STAGES: Stage[] = [
   { n: 1, name: 'First loops', goal: 'Get loops onto a needle, knit them into fabric, and take them off safely.', skills: 'Slip knot, long-tail cast-on, knit stitch, bind off, weaving in ends', makes: 'Garter stitch scarf', projects: ['scarf'] },
-  { n: 2, name: 'Knit and purl', goal: 'Mix knits and purls on purpose, and read what you have made.', skills: 'Purl stitch, stockinette, ribbing, reading your stitches, gauge swatches, fixing a dropped stitch', makes: 'Ribbed scarf, fingerless mitts', projects: ['ribscarf', 'mitts'] },
+  { n: 2, name: 'Knit and purl', goal: 'Mix knits and purls on purpose, and read what you have made.', skills: 'Purl stitch, stockinette, ribbing, reading your stitches, gauge swatches, fixing a dropped stitch', makes: 'Textured scarf, fingerless mitts', projects: ['ribscarf', 'mitts'] },
   { n: 3, name: 'In the round', goal: 'Knit a seamless tube and shape it.', skills: 'Circular needles, joining, stitch markers, k2tog and ssk decreases, double-pointed needles', makes: 'Ribbed beanie', projects: ['beanie'] },
   { n: 4, name: 'Shaping', goal: 'Add stitches where you want them and knit a thumb.', skills: 'M1L and M1R increases, thumb gussets, picking up stitches, holding stitches on waste yarn', makes: 'Mitts in the round, mittens', projects: [] },
   { n: 5, name: 'Fingers and texture', goal: 'Work small tubes, cross stitches for cables, and repair mistakes rows later.', skills: 'Glove fingers, cables, simple lace, lifelines, fixing mistakes rows later', makes: 'Gloves, cabled headband', projects: [] },

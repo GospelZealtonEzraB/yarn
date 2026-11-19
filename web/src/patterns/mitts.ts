@@ -1,3 +1,4 @@
+import { rowsFor, stitchPattern } from './stitches'
 import { stockinetteRows, type Pattern, type Settings } from './types'
 
 const CUFF_CM = 6, HAND_CM = 9, TOP_CM = 2
@@ -6,7 +7,10 @@ const CUFF_CM = 6, HAND_CM = 9, TOP_CM = 2
  * Fingerless mitts knitted flat as a rectangle and seamed up the side, leaving
  * a gap for the thumb. Only knit, purl and a simple seam are needed.
  */
-export function mittsPattern(s: Settings): Pattern {
+export const MITT_STYLES = ['stockinette', 'seed', 'moss', 'box', 'brokenrib', 'ridge']
+
+export function mittsPattern(s: Settings, style = 'stockinette'): Pattern {
+  const st = stitchPattern(style)
   if (!(s.gauge >= 8 && s.gauge <= 40)) throw new Error('Gauge should be between 8 and 40 stitches per 10 cm.')
   if (!(s.handCm >= 12 && s.handCm <= 28)) throw new Error('Hand measurement should be between 12 and 28 cm.')
   // About 10% smaller than the hand so the mitt grips, on a multiple of 4 plus 2 so the rib is symmetrical.
@@ -15,7 +19,7 @@ export function mittsPattern(s: Settings): Pattern {
   const pairs = (cm: number) => Math.max(2, Math.round((cm * rowG) / 10 / 2))
   const rs = '*K2, P2; rep from *, K2', ws = '*P2, K2; rep from *, P2'
   const rib = (n: number) => Array.from({ length: n * 2 }, (_, i) => (i % 2 ? ws : rs))
-  const plain = (n: number) => Array.from({ length: n * 2 }, (_, i) => (i % 2 ? 'P1' : 'K1'))
+  const handRows = Math.max(2, Math.round((HAND_CM * s.gauge * st.rowFactor) / 10 / 2)) * 2
   const total = CUFF_CM + HAND_CM + TOP_CM
   return {
     castOn,
@@ -32,12 +36,12 @@ export function mittsPattern(s: Settings): Pattern {
     ],
     steps: [
       { title: 'Cast on', picture: 'caston', help: ['caston'], recipe: `CO ${castOn}`, text: `Cast on ${castOn} stitches with the long-tail cast-on. Leave a 30 cm tail: you will sew the seam with it.` },
-      { title: 'Knit the cuff', help: ['rib'], recipe: `RS: ${rs} · WS: ${ws}`, rows: rib(pairs(CUFF_CM)), cm: CUFF_CM, until: `the cuff measures ${CUFF_CM} cm`,
+      { title: 'Knit the cuff', help: ['rib'], recipe: `RS: ${rs} · WS: ${ws}`, rows: rib(pairs(CUFF_CM)), chart: ['kkpp'], cm: CUFF_CM, until: `the cuff measures ${CUFF_CM} cm`,
         text: 'Work 2×2 ribbing. Right-side rows: knit 2, purl 2, ending with knit 2. Wrong-side rows: purl 2, knit 2, ending with purl 2.' },
-      { title: 'Knit the hand', help: ['stockinette'], recipe: 'RS: K all · WS: P all', rows: plain(pairs(HAND_CM)), cm: HAND_CM, until: `the piece measures ${CUFF_CM + HAND_CM} cm from the cast-on edge`,
-        text: 'Switch to stockinette. Knit every right-side row and purl every wrong-side row.',
-        tip: 'The edges will curl. The seam straightens them out.' },
-      { title: 'Knit the top edge', help: ['rib'], recipe: `RS: ${rs} · WS: ${ws}`, rows: rib(pairs(TOP_CM)), cm: TOP_CM, until: `the piece measures ${total} cm`,
+      { title: 'Knit the hand', help: ['stockinette'], recipe: style === 'stockinette' ? 'RS: K all · WS: P all' : `${st.name}, ${st.chart.length}-row repeat`, rows: rowsFor(st, castOn, handRows, 'flat'), chart: st.chart, cm: HAND_CM, until: `the piece measures ${CUFF_CM + HAND_CM} cm from the cast-on edge`,
+        text: style === 'stockinette' ? 'Switch to stockinette. Knit every right-side row and purl every wrong-side row.' : `Switch to ${st.name.toLowerCase()}. The card above shows each row as you reach it.`,
+        tip: st.liesFlat ? undefined : 'The edges will curl. The seam straightens them out.' },
+      { title: 'Knit the top edge', help: ['rib'], recipe: `RS: ${rs} · WS: ${ws}`, rows: rib(pairs(TOP_CM)), chart: ['kkpp'], cm: TOP_CM, until: `the piece measures ${total} cm`,
         text: 'Work 2×2 ribbing again for a neat edge across the knuckles.' },
       { title: 'Bind off', picture: 'bindoff', help: ['bindoff'], recipe: 'BO in rib', text: 'Bind off loosely, knitting the knits and purling the purls. Leave a 30 cm tail.' },
       { title: 'Sew the side seam', picture: 'seam', recipe: 'Seam, leaving a thumb gap',
