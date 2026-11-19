@@ -33,13 +33,15 @@ const pieceSchema: Schema = obj({
   construction: { type: 'string', enum: ['flat', 'round'] },
   cast_on: { type: 'integer' },
   stuffed: { type: 'boolean' },
+  form: { type: 'string', enum: ['solid', 'panel', 'wrap'], description: 'What the piece is when finished, however it was knitted. solid: a tube, or a flat piece seamed into a tube or pouch and usually stuffed (head, body, limb). panel: stays flat fabric (ear, patch, pocket). wrap: a strip wrapped in a ring around the item (scarf, collar, band).' },
+  wrap_radius_cm: { type: 'number', description: 'For a wrap: radius of the part it goes around, e.g. the neck. 0 for other forms.' },
   sections,
   place: obj({
     x_cm: { type: 'number' }, y_cm: { type: 'number' }, z_cm: { type: 'number' },
     tilt_deg: { type: 'number', description: 'Rotation toward the front (+) or back (-) from pointing straight up.' },
     lean_deg: { type: 'number', description: 'Rotation toward the item\'s left (+) or right (-) from pointing straight up.' },
   }, ['x_cm', 'y_cm', 'z_cm', 'tilt_deg', 'lean_deg']),
-}, ['name', 'quantity', 'colour_hex', 'construction', 'cast_on', 'stuffed', 'sections', 'place'])
+}, ['name', 'quantity', 'colour_hex', 'construction', 'cast_on', 'stuffed', 'form', 'wrap_radius_cm', 'sections', 'place'])
 
 const str = { type: 'string' }
 const strs = { type: 'array', items: str }
@@ -99,8 +101,20 @@ export function runTool(name: string, args: Record<string, unknown>, state: Stat
         return { output: { rows: rowsFor(p, n, count, how), note: `One full repeat (${count} rows). Use it as a row group and set repeat for the length. Must start on a right-side row when flat.` } }
       } catch (e) { return { output: { error: (e as Error).message } } }
     }
-    case 'check_pattern':
-      return { output: checkPattern((args.piece ?? args.pattern) as Plan['pieces'][number]) }
+    case 'check_pattern': {
+      const draft = (args.piece ?? args.pattern) as Plan['pieces'][number]
+      const result = checkPattern(draft)
+      if (!result.ok) return { output: result }
+      // Finished size, so the agent can place pieces from real measurements instead of guessing.
+      const widest = Math.max(draft.cast_on, ...result.after.map((a) => a.stitches))
+      const width = Math.round((widest / g) * 100) / 10
+      return { output: { ...result, finished_size: {
+        length_cm: Math.round(draft.sections.reduce((n, sec) => n + (sec.length_cm > 0 ? sec.length_cm : 0), 0) * 10) / 10,
+        widest_width_flat_cm: width,
+        if_solid: { widest_distance_around_cm: width, widest_radius_cm: Math.round((width / (2 * Math.PI)) * 10) / 10 },
+        note: 'A solid piece is this long along its length and this far across at its widest. Use these when placing pieces so they touch.',
+      } } }
+    }
     case 'submit_plan': {
       const plan = args as unknown as Plan
       const errors = checkPlan(plan, LESSONS.map((l) => l.id))

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { inWords, parseRow, produced, runs } from './recipe'
 import { isWrongSideRow, knit } from './fabric'
 import { yarnSpans } from './yarnPath'
-import { headForm, product, profile, reached, wornProfile } from './product'
+import { headForm, product, profile, reached, stuffedProfile, wornProfile } from './product'
 import { between, BINDOFF, blend, DIAGRAMS, KNIT, PURL, Z } from './technique'
 import { beanie, crownRecipes } from '../patterns/beanie'
 import { needleFor, PROJECTS } from '../patterns/catalog'
@@ -690,9 +690,9 @@ describe('designs made of several pieces', () => {
   const toy = (): Plan => ({
     ...normalise(beaniePlan), title: 'Bunny',
     pieces: [
-      { name: 'Body', quantity: 1, colour_hex: '#c9737a', construction: 'round', cast_on: 8, stuffed: true, place,
+      { name: 'Body', quantity: 1, colour_hex: '#c9737a', construction: 'round', cast_on: 8, stuffed: true, form: 'solid', wrap_radius_cm: 0, place,
         sections: [sec('Base', ['kfb'], 1, 1), sec('Widen', ['*K1, kfb; rep from *', 'K1'], 1, 1), sec('Sides', ['K1'], 12, 6), sec('Narrow', ['*K1, k2tog; rep from *', 'K1'], 1, 1)] },
-      { name: 'Ear', quantity: 2, colour_hex: '#c9737a', construction: 'flat', cast_on: 6, stuffed: false, place: { ...place, x_cm: 2, y_cm: 14, lean_deg: 10 },
+      { name: 'Ear', quantity: 2, colour_hex: '#c9737a', construction: 'flat', cast_on: 6, stuffed: false, form: 'panel', wrap_radius_cm: 0, place: { ...place, x_cm: 2, y_cm: 14, lean_deg: 10 },
         sections: [sec('Ear', ['K1'], 20, 6)] },
     ],
     assembly: ['Stuff the body.', 'Sew on the ears.'],
@@ -716,6 +716,32 @@ describe('designs made of several pieces', () => {
     expect(checkPlan(a, ids).join(' ')).toMatch(/assembly must say how to join/)
     const b = toy(); (b.pieces[0].place as unknown as Record<string, unknown>).y_cm = 'high'
     expect(checkPlan(b, ids).join(' ')).toMatch(/Piece "Body": place needs/)
+  })
+  it('a flat piece seamed into a stuffed shape counts as round: its width goes all the way around', () => {
+    const t = toy(); t.pieces[1] = { ...t.pieces[1], name: 'Arm', stuffed: true, form: 'solid' }
+    const settings = { gauge: 18, headCm: 56, handCm: 19, yarn: 'Test', needle: '5 mm' }
+    expect(toPattern(t, settings, 1).halved).toBe(true)
+    expect(toPattern(toy(), settings, 1).halved).toBe(false)
+  })
+  it('a stuffed piece is drawn in at both ends and keeps its knitted width in the middle', () => {
+    const pattern = toPattern(toy(), { gauge: 18, headCm: 56, handCm: 19, yarn: 'Test', needle: '5 mm' }, 0)
+    const shape = product(pattern, knit(pattern.castOn, pattern.steps.flatMap((s) => s.rows ?? []), 'round'), 18)
+    const plain = profile(shape), soft = stuffedProfile(shape), mid = Math.floor(soft.length / 2)
+    expect(soft[0][0]).toBeCloseTo(0, 5)
+    expect(soft[soft.length - 1][0]).toBeCloseTo(0, 5)
+    expect(soft[mid][0]).toBeCloseTo(plain[mid][0], 1)
+    for (let i = 0; i < soft.length; i++) expect(soft[i][0]).toBeLessThanOrEqual(plain[i][0] + 1e-9)
+  })
+  it('checking a piece also reports its finished size, so pieces can be placed to touch', () => {
+    const o = runTool('check_pattern', { piece: toy().pieces[0] }, INITIAL).output as { finished_size: { length_cm: number; if_solid: { widest_radius_cm: number } } }
+    expect(o.finished_size.length_cm).toBe(9)
+    expect(o.finished_size.if_solid.widest_radius_cm).toBeCloseTo(24 / 18 * 10 / (2 * Math.PI), 1)
+  })
+  it('a wrap must say what it goes around, and plans saved before forms existed still load', () => {
+    const t = toy(); t.pieces[1] = { ...t.pieces[1], form: 'wrap', wrap_radius_cm: 0 }
+    expect(checkPlan(t, ids).join(' ')).toMatch(/a wrap needs wrap_radius_cm/)
+    const old = JSON.parse(JSON.stringify(toy())); for (const p of old.pieces) { delete p.form; delete p.wrap_radius_cm }
+    expect(normalise(old).pieces.map((p) => p.form)).toEqual(['solid', 'panel'])
   })
   it('each piece is its own project in the builder, and the whole design is one card in the list', () => {
     const custom = [{ id: 'custom-1', plan: toy() }]

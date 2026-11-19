@@ -2,8 +2,21 @@ import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { toPattern, type Plan } from '../agent/plan'
 import { knit } from '../engine/fabric'
-import { product, profile } from '../engine/product'
+import { product, profile, stuffedProfile } from '../engine/product'
 import type { Settings } from '../patterns/types'
+
+/** Several shapes as one, so a piece made of parts still has a single material and position. */
+function merge(parts: THREE.BufferGeometry[]): THREE.BufferGeometry {
+  const flat = parts.map((g) => (g.index ? g.toNonIndexed() : g))
+  const out = new THREE.BufferGeometry()
+  for (const name of ['position', 'normal'] as const) {
+    const size = flat.reduce((n, g) => n + g.attributes[name].array.length, 0), data = new Float32Array(size)
+    let at = 0
+    for (const g of flat) { data.set(g.attributes[name].array as Float32Array, at); at += g.attributes[name].array.length }
+    out.setAttribute(name, new THREE.BufferAttribute(data, 3))
+  }
+  return out
+}
 
 /**
  * The whole item assembled from its pieces, each one shaped from its own
@@ -32,14 +45,27 @@ export function Assembly3D({ plan, settings, progress }: { plan: Plan; settings:
       try {
         const pattern = toPattern(plan, settings, i)
         const shape = product(pattern, knit(pattern.castOn, pattern.steps.flatMap((s) => s.rows ?? []), pattern.construction), settings.gauge)
-        if (piece.construction === 'round') {
-          // A tube, or a stuffed shape: spun from its stitch counts.
-          geometry = new THREE.LatheGeometry(profile(shape, 0.3).map(([r, y]) => new THREE.Vector2(Math.max(r, 0.01), y)), 28)
+        const width = shape.widthCm * (pattern.halved ? 2 : 1) // the fabric's full width, edge to edge or all the way round
+        if (piece.form === 'wrap') {
+          // A strip wrapped around the item: a ring, with any spare length hanging down the front as two tails.
+          const r = Math.max(piece.wrap_radius_cm, 0.5), spare = Math.max(shape.lengthCm - 2 * Math.PI * r, 0)
+          const ring = new THREE.CylinderGeometry(r + 0.3, r + 0.3, width, 28, 1, true)
+          const parts: THREE.BufferGeometry[] = [ring]
+          if (spare > 1) for (const side of [-1, 1]) {
+            const tail = new THREE.BoxGeometry(width * 0.8, spare / 2, 0.4)
+            tail.translate(side * width * 0.45 + r * 0.3, -spare / 4, r + 0.5)
+            parts.push(tail)
+          }
+          geometry = merge(parts)
+        } else if (piece.form === 'solid' || piece.construction === 'round') {
+          // A tube or a seamed, stuffed shape: spun from its stitch counts, and closed at both ends if it is filled.
+          const pts = (piece.stuffed ? stuffedProfile(shape, 0.3) : profile(shape, 0.3)).map(([r, y]) => new THREE.Vector2(Math.max(r, 0.01), y))
+          geometry = new THREE.LatheGeometry(pts, 28)
         } else {
           // A flat panel, cut to its knitted outline.
           const outline = new THREE.Shape(shape.outline.map(([u, v]) => new THREE.Vector2(v, u)))
-          geometry = new THREE.ExtrudeGeometry(outline, { depth: piece.stuffed ? 1.2 : 0.5, bevelEnabled: false })
-          geometry.translate(0, 0, piece.stuffed ? -0.6 : -0.25)
+          geometry = new THREE.ExtrudeGeometry(outline, { depth: 0.5, bevelEnabled: false })
+          geometry.translate(0, 0, -0.25)
         }
       } catch { return } // a piece that cannot be drawn is left out rather than guessed
       geometry.computeVertexNormals()

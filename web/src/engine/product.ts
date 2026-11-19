@@ -99,6 +99,18 @@ export function profile(p: Product, step = 0.25): [number, number, number][] {
 }
 
 /**
+ * A filled piece: the same profile with its ends drawn in, the way stuffing and a gathered or
+ * seamed end round off a knitted tube. The middle keeps its knitted width; `t` runs 0 to 1 along it.
+ */
+export function stuffedProfile(p: Product, step = 0.25): [number, number, number][] {
+  const base = profile(p, step), top = base[base.length - 1][1] || 1
+  return base.map(([r, y, u]): [number, number, number] => {
+    const t = y / top
+    return [r * (1 - Math.abs(2 * t - 1) ** 3) ** (1 / 3), y, u]
+  })
+}
+
+/**
  * A plain head as an ellipsoid: `a` is its horizontal radius at the widest
  * point, from the head measurement, and `b` its vertical radius. The centre is
  * at the origin. This is also the surface a hat is draped on when a detailed

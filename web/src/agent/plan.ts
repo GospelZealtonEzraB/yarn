@@ -34,6 +34,15 @@ export interface PlanPiece {
   cast_on: number
   /** True for parts that are filled, so they are round rather than flat. */
   stuffed: boolean
+  /**
+   * What the piece is once finished, whatever way it was knitted:
+   * solid = a tube or a seamed and stuffed shape, round in cross-section;
+   * panel = stays a flat piece of fabric, like an ear or a patch;
+   * wrap  = a strip wrapped in a ring around the item, like a scarf, collar or band.
+   */
+  form: 'solid' | 'panel' | 'wrap'
+  /** For a wrap: the radius of the ring it makes. 0 otherwise. */
+  wrap_radius_cm: number
   sections: PlanSection[]
   place: Place
 }
@@ -60,9 +69,10 @@ const NO_PLACE: Place = { x_cm: 0, y_cm: 0, z_cm: 0, tilt_deg: 0, lean_deg: 0 }
 /** Brings a plan saved in the earlier one-piece format up to the current shape. */
 export function normalise(raw: unknown): Plan {
   const p = raw as Plan & { pattern?: { construction: Construction; cast_on: number; sections: PlanSection[] }; finishing?: string[] }
-  if (Array.isArray(p.pieces)) return p
+  // Plans saved before pieces had a form: a tube or stuffed piece is a solid, anything else a panel.
+  if (Array.isArray(p.pieces)) return { ...p, pieces: p.pieces.map((x) => ({ ...x, form: x.form ?? (x.stuffed || x.construction === 'round' ? 'solid' : 'panel'), wrap_radius_cm: x.wrap_radius_cm ?? 0 })) }
   const { pattern, finishing, ...rest } = p
-  return { ...rest, pieces: [{ name: p.title, quantity: 1, colour_hex: '', stuffed: false, place: NO_PLACE, construction: pattern!.construction, cast_on: pattern!.cast_on, sections: pattern!.sections }], assembly: finishing ?? [] }
+  return { ...rest, pieces: [{ name: p.title, quantity: 1, colour_hex: '', stuffed: false, form: pattern!.construction === 'round' ? 'solid' : 'panel', wrap_radius_cm: 0, place: NO_PLACE, construction: pattern!.construction, cast_on: pattern!.cast_on, sections: pattern!.sections }], assembly: finishing ?? [] }
 }
 
 export const MAX_ROWS = 3000
@@ -138,6 +148,8 @@ export function checkPlan(plan: Plan, lessonIds: string[]): string[] {
     if (!text(piece.name)) errors.push('Every piece needs a name.')
     if (!(piece.quantity >= 1 && piece.quantity <= 8)) errors.push(`${where}quantity must be between 1 and 8.`)
     if (!piece.place || !['x_cm', 'y_cm', 'z_cm', 'tilt_deg', 'lean_deg'].every((k) => Number.isFinite(piece.place[k as keyof Place]))) errors.push(`${where}place needs x_cm, y_cm, z_cm, tilt_deg and lean_deg as numbers.`)
+    if (!['solid', 'panel', 'wrap'].includes(piece.form)) errors.push(`${where}form must be "solid", "panel" or "wrap".`)
+    if (piece.form === 'wrap' && !(piece.wrap_radius_cm > 0)) errors.push(`${where}a wrap needs wrap_radius_cm, the radius of the part it goes around.`)
     for (const s of piece.sections ?? []) if (!text(s.title) || !text(s.instructions)) errors.push(`${where}every section needs a title and instructions.`)
     errors.push(...checkPattern(piece).errors.map((e) => where + e))
   }
@@ -167,7 +179,8 @@ export function toPattern(plan: Plan, settings: Settings, pieceIndex = 0): Patte
   return {
     castOn: piece.cast_on,
     construction: piece.construction,
-    halved: piece.construction === 'round',
+    // Seen doubled when laid flat: anything knitted as a tube, or seamed into one.
+    halved: piece.construction === 'round' || piece.form === 'solid',
     fits: plan.pieces.length === 1 ? plan.summary : `${piece.name}${piece.quantity > 1 ? `. Make ${piece.quantity}, all the same.` : '.'}`,
     kit: [{ name: `${plan.yarn.weight} yarn`, qty: plan.yarn.amount }, ...plan.tools.map((t) => ({ name: t.name, qty: t.size_or_qty || '1' }))],
     steps,
