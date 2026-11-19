@@ -1,0 +1,548 @@
+<title>Loopwise</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=DM+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a working phone prototype on the left with screen notes beside it, then the plan as plain reading sections below. */
+:root{
+  --bg:#EDF0F5; --surface:#FFFFFF; --surface2:#E3E7F0; --ink:#1D2140; --muted:#555B7A; --line:#CBD1E0;
+  --wool:#C92C63; --on-wool:#FFFFFF; --wool-soft:#F9DDE7;
+  --sun:#EDB021; --teal:#127670; --teal-soft:#D3EEEA; --bezel:#1D2140;
+  --display:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;
+  --body:"DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"DM Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#121528; --surface:#1B1F38; --surface2:#262B4A; --ink:#ECEEF8; --muted:#A3A9C6; --line:#363C61;
+  --wool:#F26D9E; --on-wool:#22081A; --wool-soft:#47203A;
+  --sun:#F2C14E; --teal:#56CBC2; --teal-soft:#173F42; --bezel:#05060F; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#121528; --surface:#1B1F38; --surface2:#262B4A; --ink:#ECEEF8; --muted:#A3A9C6; --line:#363C61;
+  --wool:#F26D9E; --on-wool:#22081A; --wool-soft:#47203A;
+  --sun:#F2C14E; --teal:#56CBC2; --teal-soft:#173F42; --bezel:#05060F; color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55}
+.wrap{max-width:1080px;margin:0 auto;padding-block:28px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:56px}
+h1,h2,h3,h4{font-family:var(--display);line-height:1.12;margin:0;text-wrap:balance}
+h1{font-size:clamp(2.1rem,6vw,3.3rem);font-weight:700;letter-spacing:-.02em}
+h2{font-size:1.65rem;font-weight:700}
+h3{font-size:1.1rem;font-weight:700}
+p{margin:0}
+.eyebrow{font-family:var(--mono);font-size:.75rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted)}
+.lede{font-size:1.1rem;max-width:60ch;color:var(--muted)}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+
+/* intro */
+.intro{display:flex;flex-direction:column;gap:14px}
+.answers{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;margin-top:8px}
+.answer{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.answer b{font-family:var(--display);font-size:1.02rem}
+.answer span{color:var(--muted);font-size:.93rem}
+.yes{color:var(--teal);font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase}
+
+/* prototype stage */
+.stage{display:grid;grid-template-columns:minmax(0,400px) minmax(0,1fr);gap:36px;align-items:start}
+@media (max-width:820px){.stage{grid-template-columns:minmax(0,1fr)}}
+.phone{width:100%;max-width:400px;height:760px;margin:0 auto;background:var(--surface);border:9px solid var(--bezel);border-radius:38px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 18px 40px -22px var(--bezel)}
+#screen{flex:1;overflow-y:auto;padding:18px 16px 20px;display:flex;flex-direction:column;gap:14px;min-height:0}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line);background:var(--surface)}
+.tabs button{background:none;border:0;padding:9px 2px 11px;font-size:.74rem;font-weight:500;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px}
+.tabs button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tabs button[aria-current="true"]{color:var(--wool);font-weight:700}
+.notes{display:flex;flex-direction:column;gap:14px;min-width:0}
+.notes ul{margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:8px;color:var(--muted);max-width:56ch}
+.notes li b{color:var(--ink)}
+.jump{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:7px 13px;font-size:.86rem;font-weight:500}
+.chip[aria-pressed="true"],.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+/* in-app pieces */
+.app-h{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.app-h h3{font-size:1.45rem}
+.sub{color:var(--muted);font-size:.88rem}
+.streak{font-family:var(--mono);font-size:.78rem;background:var(--surface2);border-radius:999px;padding:5px 10px;white-space:nowrap}
+.panel{background:var(--surface2);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--wool);color:var(--on-wool);border:0;border-radius:12px;padding:11px 16px;font-weight:700;min-height:44px}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn.small{padding:7px 12px;min-height:36px;font-size:.88rem}
+.btn:disabled{opacity:.4;cursor:default}
+.back{background:none;border:0;padding:4px 0;color:var(--muted);font-size:.88rem;font-weight:500;align-self:flex-start}
+.tag{font-family:var(--mono);font-size:.7rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.tag.live{color:var(--teal)}
+
+.path{display:flex;flex-direction:column;gap:0;list-style:none;margin:0;padding:0}
+.path li{display:grid;grid-template-columns:34px minmax(0,1fr);gap:12px;padding-bottom:14px;position:relative}
+.path li::before{content:"";position:absolute;left:16px;top:34px;bottom:0;width:2px;background:var(--line)}
+.path li:last-child::before{display:none}
+.node{width:34px;height:34px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-family:var(--mono);font-size:.85rem;background:var(--surface);z-index:1}
+.path li.now .node{background:var(--wool);border-color:var(--wool);color:var(--on-wool)}
+.path h4{font-size:1rem}
+.skills{font-size:.84rem;color:var(--muted)}
+.makes{font-size:.8rem;margin-top:3px}
+.lessons{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.lesson{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--surface2);border:0;border-radius:10px;padding:9px 12px;text-align:left;font-size:.9rem;width:100%}
+.lesson .tag{flex:none}
+
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.pcard{background:var(--surface2);border:2px solid transparent;border-radius:16px;padding:10px 10px 12px;text-align:left;display:flex;flex-direction:column;gap:4px;min-width:0}
+.pcard.open{border-color:var(--wool)}
+.pcard svg{width:100%;height:74px}
+.pcard b{font-family:var(--display);font-size:.98rem}
+.sil{fill:var(--wool-soft);stroke:var(--wool);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+.pcard.locked .sil{fill:var(--surface);stroke:var(--muted)}
+
+.illo{background:var(--surface2);border-radius:18px;padding:8px;display:grid;place-items:center}
+.illo svg{width:100%;height:auto;max-height:300px;display:block}
+.st{fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.st.new{stroke:var(--wool)} .st.old{stroke:var(--muted);opacity:.65} .st.alt{stroke:var(--teal)}
+.needle{stroke:var(--ink);stroke-width:4;stroke-linecap:round;fill:none}
+.yarnline{stroke:var(--wool);stroke-width:3;fill:none;stroke-linecap:round}
+.svgtxt{fill:var(--muted);font-family:var(--mono);font-size:11px}
+.progress{display:flex;gap:4px}
+.progress i{flex:1;height:6px;border-radius:3px;background:var(--line)}
+.progress i.d{background:var(--wool)}
+.recipe{font-family:var(--mono);font-size:.86rem;background:var(--surface);border:1px dashed var(--line);border-radius:10px;padding:8px 10px;overflow-wrap:anywhere}
+.tip{font-size:.86rem;color:var(--muted);border-left:3px solid var(--sun);padding-left:10px}
+.counter{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.counter output{font-family:var(--mono);font-size:1.5rem;font-weight:500;font-variant-numeric:tabular-nums;min-width:2.2ch;text-align:center}
+.round{width:44px;height:44px;border-radius:50%;border:1.5px solid var(--line);background:var(--surface);font-size:1.3rem;line-height:1}
+.round.plus{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.nav2{display:grid;grid-template-columns:1fr 1.6fr;gap:8px;margin-top:auto}
+.parts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.part{background:var(--surface2);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:2px;font-size:.84rem;min-width:0}
+.part svg{width:44px;height:44px;stroke:var(--ink);fill:none;stroke-width:2.2;stroke-linecap:round}
+.part .qty{font-family:var(--mono);color:var(--wool);font-size:.8rem}
+
+.opts{display:grid;gap:8px}
+.opt{background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:11px 12px;text-align:left;font-weight:500;min-height:44px}
+.opt.right{border-color:var(--teal);background:var(--teal-soft)}
+.opt.wrong{border-color:var(--wool);background:var(--wool-soft)}
+.glist{display:flex;flex-direction:column;gap:8px}
+.gitem{display:flex;justify-content:space-between;gap:10px;align-items:center;background:var(--surface2);border-radius:12px;padding:10px 12px;font-size:.9rem}
+.gitem span{color:var(--muted);font-size:.82rem;display:block}
+
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--surface2);border-radius:12px;padding:4px;gap:4px}
+.seg button{border:0;background:none;border-radius:9px;padding:9px 6px;font-size:.88rem;font-weight:500;min-height:40px}
+.seg button[aria-pressed="true"]{background:var(--surface);font-weight:700;box-shadow:0 1px 3px -1px var(--bezel)}
+.drop{border:2px dashed var(--line);border-radius:16px;padding:18px 14px;text-align:center;display:flex;flex-direction:column;gap:8px;align-items:center;color:var(--muted);font-size:.9rem}
+.drop img{max-height:150px;border-radius:10px}
+.drop input{max-width:100%;font-size:.82rem}
+.find{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 10px;font-size:.88rem}
+.find dt{font-family:var(--mono);font-size:.74rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding-top:2px}
+.find dd{margin:0}
+.counter .row{flex-wrap:nowrap}
+.badge{align-self:flex-start;display:inline-block;font-family:var(--mono);font-size:.7rem;border-radius:6px;padding:2px 6px;background:var(--sun);color:#2A1E00}
+.issue{background:var(--wool-soft);border-radius:12px;padding:10px 12px;font-size:.88rem}
+.ok{background:var(--teal-soft);border-radius:12px;padding:10px 12px;font-size:.88rem}
+#toast{position:absolute;left:50%;bottom:78px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:999px;font-size:.84rem;width:max-content;max-width:86%;text-align:center}
+.phone-rel{position:relative}
+
+/* plan */
+.plan{display:flex;flex-direction:column;gap:18px}
+.plan>p{max-width:65ch;color:var(--muted)}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.block{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.block ul{margin:0;padding-left:1.1em;color:var(--muted);font-size:.93rem;display:flex;flex-direction:column;gap:4px}
+.stages{display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.stg{display:grid;grid-template-columns:44px minmax(0,1.1fr) minmax(0,2fr) minmax(0,1.3fr);gap:14px;padding:14px 0;border-bottom:1px solid var(--line);align-items:start}
+.stg .n{font-family:var(--display);font-size:1.7rem;font-weight:700;color:var(--wool);line-height:1}
+.stg p{font-size:.93rem;color:var(--muted)}
+.stg .mk{color:var(--ink)}
+@media (max-width:720px){.stg{grid-template-columns:36px minmax(0,1fr)}.stg p{grid-column:2}}
+.tw{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:14px}
+table{border-collapse:collapse;width:100%;min-width:620px;font-size:.93rem}
+th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+th{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:500}
+td:first-child{font-weight:700;white-space:nowrap}
+td:last-child{color:var(--muted)}
+.phases{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.phase{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.phase .when{font-family:var(--mono);font-size:.74rem;color:var(--wool);text-transform:uppercase;letter-spacing:.06em}
+.phase p{font-size:.9rem;color:var(--muted)}
+@media (prefers-reduced-motion:no-preference){.st.new{animation:pop .25s ease-out}}
+@keyframes pop{from{opacity:.2}to{opacity:1}}
+</style>
+
+<div class="wrap">
+  <header class="intro">
+    <span class="eyebrow">Product scope and first screens</span>
+    <h1>Loopwise</h1>
+    <p class="lede">A knitting teacher that builds each project with you one step at a time, the way a brick-building app builds a model. Pick a hat, see the next few rows light up, knit them, tap next.</p>
+    <div class="answers">
+      <div class="answer"><span class="yes">Yes, with limits</span><b>Upload a photo of my work, get help finishing it</b><span>A vision model reads the photo, spots common mistakes and tells you which step you are on. It needs a clear, close photo.</span></div>
+      <div class="answer"><span class="yes">Yes, for common shapes</span><b>Show it a finished item, get guided steps</b><span>It recognises the item and stitch, asks for your yarn and measurements, then fills a tested pattern template. It does not invent patterns from nothing.</span></div>
+      <div class="answer"><span class="yes">Yes</span><b>Beginner to pro, in stages</b><span>Six stages. Each one teaches a handful of skills and ends in something you can wear or give away.</span></div>
+    </div>
+  </header>
+
+  <section class="stage" aria-label="Interactive prototype">
+    <div class="phone-rel">
+      <div class="phone">
+        <div id="screen"></div>
+        <nav class="tabs" id="tabs" aria-label="App sections"></nav>
+      </div>
+      <div id="toast" role="status" hidden></div>
+    </div>
+    <aside class="notes">
+      <span class="eyebrow">Try the prototype</span>
+      <h2 id="noteTitle"></h2>
+      <ul id="noteList"></ul>
+      <div class="jump" id="jump"></div>
+      <p class="sub">Everything in the phone is clickable sample content. Photo results are examples, not real analysis yet.</p>
+    </aside>
+  </section>
+
+  <section class="plan">
+    <span class="eyebrow">Scope</span>
+    <h2>What the app does</h2>
+    <div class="grid3">
+      <div class="block"><h3>Learn</h3><ul><li>Six-stage path from slip knot to sweater</li><li>Short lessons with frame-by-frame technique pictures</li><li>English or continental style, with a left-handed mirror</li><li>Glossary of abbreviations (K, P, k2tog, ssk, yo)</li></ul></div>
+      <div class="block"><h3>Build</h3><ul><li>Pick an item, get a kit list and numbered steps</li><li>The picture grows as you count rows</li><li>Patterns resize to your yarn, needles and measurements</li><li>Row counter, saved progress, works offline</li></ul></div>
+      <div class="block"><h3>Practice</h3><ul><li>Name the swatch, read the chart, spot the dropped stitch</li><li>Abbreviation flashcards</li><li>Gauge swatch trainer</li><li>Streaks and stage badges</li></ul></div>
+      <div class="block"><h3>Photo coach</h3><ul><li>Check my work: mistakes, tension, where you are</li><li>Knit from a photo: reference image to guided steps</li><li>Always asks follow-up questions before giving numbers</li></ul></div>
+    </div>
+  </section>
+
+  <section class="plan">
+    <span class="eyebrow">Curriculum</span>
+    <h2>Six stages, each ending in something real</h2>
+    <div class="stages" id="stages"></div>
+  </section>
+
+  <section class="plan">
+    <span class="eyebrow">Photo features</span>
+    <h2>How the two photo features work</h2>
+    <div class="grid3">
+      <div class="block"><h3>Check my work</h3><ul><li>You photograph the piece flat, in daylight</li><li>The model gets the photo plus the step you are on</li><li>It returns marked problems and a fix for each</li><li>Reliable for dropped stitches, accidental purls, extra stitches at edges, twisted joins</li><li>Unreliable for exact stitch counts on large pieces</li></ul></div>
+      <div class="block"><h3>Knit from a photo</h3><ul><li>The model names the item, stitch pattern, construction and colour count</li><li>The app asks for your yarn weight, a gauge swatch and body measurements</li><li>Those numbers fill a tested template (beanie, scarf, mitts, socks)</li><li>Works for plain, ribbed and striped items. Complex cables and lace get the closest match, clearly labelled</li></ul></div>
+      <div class="block"><h3>Why templates</h3><ul><li>A model guessing stitch counts from a photo produces hats that do not fit</li><li>Templates carry the arithmetic. The photo only chooses which template and which options</li><li>Each new template extends what photos can turn into</li></ul></div>
+    </div>
+  </section>
+
+  <section class="plan">
+    <span class="eyebrow">Stack</span>
+    <h2>Recommended technology</h2>
+    <p>One web codebase that installs on a phone like an app and works offline, so it can sit next to your knitting. It can be wrapped for the app stores later without a rewrite.</p>
+    <div class="tw"><table>
+      <thead><tr><th>Layer</th><th>Choice</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td>App</td><td>React, TypeScript, Vite, installable PWA</td><td>Runs on any phone, tablet or laptop. Capacitor wraps it for iOS and Android when wanted.</td></tr>
+        <tr><td>Illustrations</td><td>SVG drawn from pattern data</td><td>The step pictures in this prototype are generated from stitch data, so every pattern gets pictures for free.</td></tr>
+        <tr><td>Technique frames</td><td>Hand-drawn SVG sequences, Lottie for motion</td><td>Hands and needles need an illustrator's touch. Small files, crisp at any size.</td></tr>
+        <tr><td>Patterns</td><td>JSON templates with Zod validation</td><td>Templates take gauge and measurements and output steps. Lessons live as MDX files in the repo.</td></tr>
+        <tr><td>Progress</td><td>Zustand, IndexedDB via Dexie, Workbox</td><td>Row counts and progress save on the device and survive no signal.</td></tr>
+        <tr><td>Accounts and photos</td><td>Supabase (auth, Postgres, storage)</td><td>Only needed once you want sync between devices or a photo history.</td></tr>
+        <tr><td>Photo coach</td><td>Claude vision API behind a serverless function</td><td>Keeps the API key off the phone. Returns structured results that map to template options.</td></tr>
+        <tr><td>Quality</td><td>Vitest, Playwright, Vercel hosting</td><td>Pattern arithmetic gets unit tests. A wrong stitch count wastes hours of knitting.</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section class="plan">
+    <span class="eyebrow">Plan</span>
+    <h2>Build order</h2>
+    <p>Durations are rough estimates for steady part-time work.</p>
+    <div class="phases">
+      <div class="phase"><span class="when">Phase 0 · week 1</span><h3>Foundation</h3><p>Project scaffold, design tokens, stitch renderer, pattern and lesson schemas.</p></div>
+      <div class="phase"><span class="when">Phase 1 · weeks 2–3</span><h3>First loops</h3><p>Stages 1 and 2, garter scarf builder, row counter, offline progress. Usable with your new yarn.</p></div>
+      <div class="phase"><span class="when">Phase 2 · weeks 4–6</span><h3>Projects and games</h3><p>Beanie and mitts templates, yarn and gauge setup, three practice games.</p></div>
+      <div class="phase"><span class="when">Phase 3 · weeks 7–9</span><h3>Photo coach</h3><p>Check my work first, then knit from a photo for the templates that exist.</p></div>
+      <div class="phase"><span class="when">Phase 4 · ongoing</span><h3>Advanced</h3><p>Stages 5 and 6: gloves, cables, socks, a sweater. Gift log and sharing.</p></div>
+    </div>
+  </section>
+
+  <section class="plan">
+    <span class="eyebrow">Your call</span>
+    <h2>Decisions that shape the build</h2>
+    <div class="grid3">
+      <div class="block"><h3>Web app or native app</h3><ul><li>Recommended: installable web app first</li><li>Native only if app-store presence matters from day one</li></ul></div>
+      <div class="block"><h3>Just you, or others too</h3><ul><li>Personal use needs no accounts and no server until the photo coach</li><li>Sharing with friends adds sign-in and sync</li></ul></div>
+      <div class="block"><h3>Knitting style</h3><ul><li>English (yarn in right hand) or continental (yarn in left)</li><li>The first lessons differ, so pick one to illustrate first</li></ul></div>
+    </div>
+  </section>
+</div>
+
+<script>
+(function(){
+const $=s=>document.querySelector(s);
+const YARN={
+  dk:{label:'DK',needle:'4 mm',gauge:22,cast:108,crownK:10,sections:9},
+  worsted:{label:'Worsted',needle:'5 mm',gauge:18,cast:88,crownK:9,sections:8},
+  chunky:{label:'Chunky',needle:'6 mm',gauge:14,cast:72,crownK:7,sections:8}
+};
+const STAGES=[
+  {n:1,name:'First loops',skills:'Slip knot, long-tail cast-on, knit stitch, bind off, weaving in ends',makes:'Garter stitch scarf, dishcloth',
+   lessons:[['Slip knot and cast on',''],['The knit stitch','knit'],['Bind off',''],['Weave in ends','']]},
+  {n:2,name:'Knit and purl',skills:'Purl stitch, stockinette, ribbing, seed stitch, reading your stitches, gauge swatches',makes:'Ribbed scarf, textured cowl'},
+  {n:3,name:'In the round',skills:'Circular needles, joining, stitch markers, k2tog and ssk decreases, double-pointed needles',makes:'Ribbed beanie, slouchy hat'},
+  {n:4,name:'Shaping',skills:'M1L and M1R increases, thumb gussets, picking up stitches, holding stitches on waste yarn',makes:'Fingerless mitts, mittens'},
+  {n:5,name:'Fingers and texture',skills:'Glove fingers, cables, simple lace, lifelines, fixing mistakes rows later',makes:'Gloves, cabled headband'},
+  {n:6,name:'Colour and garments',skills:'Stripes, Fair Isle, heel turns, raglan shaping, seaming, blocking, altering patterns',makes:'Socks, top-down sweater, your own designs'}
+];
+const PROJECTS=[
+  {id:'scarf',name:'Garter scarf',stage:1,time:'6 hrs',d:'M36 6h28v50l-4 8-5-8-5 8-5-8-5 8-4-8z'},
+  {id:'beanie',name:'Ribbed beanie',stage:3,time:'8 hrs',d:'M22 50C22 24 34 8 50 8s28 16 28 42v10H22z M22 50h56'},
+  {id:'mitts',name:'Fingerless mitts',stage:4,time:'7 hrs',d:'M36 62V22h28v12l8-6 5 6-13 14v14z'},
+  {id:'mittens',name:'Mittens',stage:4,time:'9 hrs',d:'M36 62V26c0-22 28-22 28 0v8l8-6 5 6-13 14v14z'},
+  {id:'gloves',name:'Gloves',stage:5,time:'14 hrs',d:'M34 62V34l-8-10 5-5 7 8V10h6v16h3V6h6v20h3V10h6v18h2l8-6 4 6-12 14v20z'},
+  {id:'socks',name:'Socks',stage:6,time:'16 hrs',d:'M38 6h24v32l14 12c8 8-2 16-10 12L38 46z'},
+  {id:'sweater',name:'Raglan sweater',stage:6,time:'40 hrs',d:'M38 8h24l22 14-8 14-10-6v32H34V30l-10 6-8-14z'},
+  {id:'headband',name:'Cabled headband',stage:5,time:'4 hrs',d:'M14 26c24-10 48-10 72 0v20c-24-10-48-10-72 0z'}
+];
+const SWATCHES=[
+  {name:'Stockinette',f:()=>'k',why:'Smooth columns of V shapes on the front. Knit one row, purl the next when worked flat.'},
+  {name:'Garter stitch',f:(r)=>r%2?'p':'k',why:'Ridges of bumps across every other row. Made by knitting every row when worked flat.'},
+  {name:'1×1 rib',f:(r,c)=>c%2?'p':'k',why:'Single knit columns beside single purl columns. Very stretchy.'},
+  {name:'2×2 rib',f:(r,c)=>c%4<2?'k':'p',why:'Pairs of knit columns beside pairs of purl columns. The classic hat brim.'},
+  {name:'Seed stitch',f:(r,c)=>(r+c)%2?'p':'k',why:'Knits and purls alternate like a checkerboard, so bumps are scattered evenly.'}
+];
+const st={view:'learn',yarn:'worsted',step:0,count:0,open:1,frame:0,quiz:null,score:0,asked:0,coach:'check',photo:{},result:{}};
+
+/* ---------- stitch drawing ---------- */
+function stitch(x,y,w,h,type,cls){
+  return type==='p'
+    ? `<path class="st ${cls}" d="M${x+2},${y+h*.68} Q${x+w/2},${y+h*.05} ${x+w-2},${y+h*.68}"/>`
+    : `<path class="st ${cls}" d="M${x+2},${y+2} L${x+w/2},${y+h-2} L${x+w-2},${y+2}"/>`;
+}
+function swatchSVG(f,rows,cols,mark){
+  const w=18,h=15;let s='';
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+    const bad=mark&&mark[0]===r&&mark[1]===c;
+    s+=stitch(8+c*w,8+r*h,w,h,bad?'p':f(r,c),bad?'new':(mark?'old':'alt'));
+  }
+  if(mark)s+=`<circle cx="${8+mark[1]*w+w/2}" cy="${8+mark[0]*h+h/2}" r="15" fill="none" stroke="var(--wool)" stroke-width="2.5" stroke-dasharray="4 4"/>`;
+  return `<svg viewBox="0 0 ${cols*w+16} ${rows*h+16}" role="img" aria-label="Knitted swatch">${s}</svg>`;
+}
+const SECT=[{n:6,type:'rib'},{n:12,type:'k'},{n:9,type:'crown'}];
+const CROWN=[22,20,18,16,14,12,10,6,4];
+function beanieSVG(step,count){
+  const W=340,H=336,cw=13,ch=11,cols=22,x0=(W-cols*cw)/2,base=H-26;
+  let s='';
+  const loops=(y)=>{let o=`<line class="needle" x1="${x0-16}" y1="${y}" x2="${x0+cols*cw+16}" y2="${y}"/>`;
+    for(let c=0;c<cols;c++)o+=`<ellipse class="st new" cx="${x0+c*cw+cw/2}" cy="${y}" rx="4" ry="7"/>`;return o};
+  if(step===1){s+=loops(H/2)+`<path class="yarnline" d="M${x0+cols*cw},${H/2+6} q30,40 50,90"/><text class="svgtxt" x="${W/2}" y="${H/2+44}" text-anchor="middle">stitches sit side by side on the needle</text>`;}
+  else if(step===2){
+    const cx=W/2,cy=H/2,rx=120,ry=44;
+    s+=`<ellipse class="needle" cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}"/>`;
+    for(let i=0;i<30;i++){const a=i/30*Math.PI*2;s+=`<ellipse class="st new" cx="${cx+Math.cos(a)*rx}" cy="${cy+Math.sin(a)*ry}" rx="4" ry="7"/>`;}
+    s+=`<circle cx="${cx}" cy="${cy+ry}" r="9" fill="var(--bg)" stroke="var(--sun)" stroke-width="4"/><text class="svgtxt" x="${cx}" y="${cy+ry+30}" text-anchor="middle">marker shows where each round starts</text>`;
+  } else {
+    let visible=0;
+    if(step>=6)visible=27;else{for(let i=0;i<step-3;i++)visible+=SECT[i].n;visible+=Math.min(count,SECT[step-3].n);}
+    const prior=step>=6?27:visible-Math.min(count,SECT[step-3].n);
+    let r=0,topW=cols;
+    for(const sec of SECT)for(let i=0;i<sec.n;i++,r++){
+      if(r>=visible)break;
+      const n=sec.type==='crown'?CROWN[i]:cols;topW=n;
+      const xs=x0+(cols-n)/2*cw,y=base-(r+1)*ch;
+      const cls=step>=6?'new':(r<prior?'old':'new');
+      for(let c=0;c<n;c++)s+=stitch(xs+c*cw,y,cw,ch,sec.type==='rib'&&c%4>1?'p':'k',cls);
+    }
+    if(step>=6){s+=`<circle cx="${W/2}" cy="${base-27*ch-12}" r="16" fill="var(--sun)"/><text class="svgtxt" x="${W/2}" y="${H-6}" text-anchor="middle">pompom optional</text>`;}
+    else{
+      const y=base-visible*ch-5,xs=x0+(cols-topW)/2*cw;
+      s+=`<line class="needle" x1="${xs-14}" y1="${y}" x2="${xs+topW*cw+14}" y2="${y}"/><circle cx="${xs-4}" cy="${y}" r="5" fill="var(--bg)" stroke="var(--sun)" stroke-width="3"/>`;
+      if(visible===0)for(let c=0;c<cols;c++)s+=`<ellipse class="st old" cx="${x0+c*cw+cw/2}" cy="${y}" rx="4" ry="6"/>`;
+      s+=`<text class="svgtxt" x="${W/2}" y="${H-6}" text-anchor="middle">pink rows are this step</text>`;
+    }
+  }
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Beanie at this step">${s}</svg>`;
+}
+/* knit stitch schematic, four frames */
+const FRAMES=[
+  ['In through the front door','Slide the right needle tip into the first loop on the left needle, from front to back. The right needle ends up behind the left.'],
+  ['Once around the back','Wrap the working yarn around the right needle tip, anticlockwise.'],
+  ['Peek through the window','Draw the right needle back toward you, bringing the wrapped yarn through the old loop as a new loop.'],
+  ['Off jumps Jack','Slide the old loop off the left needle. One knit stitch made, and it lives on the right needle now.']
+];
+function knitSVG(f){
+  const loop=(x,cls)=>`<ellipse class="st ${cls}" cx="${x}" cy="80" rx="7" ry="17"/>`;
+  let s=`<line class="needle" x1="20" y1="80" x2="${f===3?150:172}" y2="80"/>`;
+  s+=loop(70,'old')+loop(95,'old')+loop(120,'old');
+  if(f<3)s+=loop(145,'alt');
+  const R=[[262,150,128,62],[262,150,128,62],[272,140,150,92],[285,128,178,84]][f];
+  s+=`<line class="needle" x1="${R[0]}" y1="${R[1]}" x2="${R[2]}" y2="${R[3]}"/>`;
+  if(f===0)s+=`<path class="yarnline" d="M152,70 C190,40 230,30 300,34"/>`;
+  if(f===1)s+=`<path class="yarnline" d="M152,70 C150,44 120,46 124,64 C128,80 150,74 180,52 C220,30 260,30 300,34"/>`;
+  if(f===2)s+=`<ellipse class="st new" cx="166" cy="100" rx="7" ry="13" transform="rotate(-32 166 100)"/><path class="yarnline" d="M172,90 C210,50 250,36 300,34"/>`;
+  if(f===3)s+=`<ellipse class="st new" cx="196" cy="92" rx="7" ry="14" transform="rotate(-22 196 92)"/><path class="yarnline" d="M202,82 C230,50 260,38 300,34"/><path class="st alt" d="M150,96 q-6,16 6,24" opacity=".6"/>`;
+  s+=`<text class="svgtxt" x="20" y="150">left needle</text><text class="svgtxt" x="222" y="170">right needle</text>`;
+  return `<svg viewBox="0 0 320 180" role="img" aria-label="Knit stitch, frame ${f+1}">${s}</svg>`;
+}
+
+/* ---------- screens ---------- */
+function learn(){
+  const y=YARN[st.yarn];
+  return `<div class="app-h"><div><h3>Hello, new knitter</h3><p class="sub">Stage 1 of 6 · 1 of 4 lessons done</p></div><span class="streak">3 day streak</span></div>
+  <div class="panel"><b>Your yarn</b><p class="sub">Read the weight off the ball band. Projects resize to match.</p>
+    <div class="row">${Object.keys(YARN).map(k=>`<button class="chip" data-act="yarn" data-v="${k}" aria-pressed="${st.yarn===k}">${YARN[k].label}</button>`).join('')}</div>
+    <p class="sub">Use <b>${y.needle}</b> needles · about ${y.gauge} stitches per 10 cm</p></div>
+  <ol class="path">${STAGES.map(s=>`<li class="${s.n===1?'now':''}"><span class="node">${s.n}</span><div>
+     <button class="back" style="padding:0;color:inherit" data-act="open" data-v="${s.n}" aria-expanded="${st.open===s.n}"><h4>${s.name}</h4></button>
+     <p class="skills">${s.skills}</p><p class="makes"><span class="tag">You make</span> ${s.makes}</p>
+     ${st.open===s.n&&s.lessons?`<div class="lessons">${s.lessons.map((l,i)=>`<button class="lesson" data-act="${l[1]?'lesson':'soon'}"><span>${l[0]}</span><span class="tag ${l[1]?'live':''}">${i===0?'Done':l[1]?'Open':'Soon'}</span></button>`).join('')}</div>`:''}
+   </div></li>`).join('')}</ol>`;
+}
+function lesson(){
+  const f=FRAMES[st.frame];
+  return `<button class="back" data-act="go" data-v="learn">← Stage 1</button>
+  <div><span class="tag">Lesson 2 · frame ${st.frame+1} of 4</span><h3 style="font-size:1.35rem">The knit stitch</h3></div>
+  <div class="progress">${FRAMES.map((_,i)=>`<i class="${i<=st.frame?'d':''}"></i>`).join('')}</div>
+  <div class="illo">${knitSVG(st.frame)}</div>
+  <h4 style="font-size:1.1rem">${f[0]}</h4><p>${f[1]}</p>
+  <p class="tip">Knitters teach this as a rhyme: in through the front door, once around the back, peek through the window, off jumps Jack.</p>
+  <p class="sub">Schematic drawing. The built app uses illustrated hands for each frame.</p>
+  <div class="nav2"><button class="btn ghost" data-act="frame" data-v="-1" ${st.frame===0?'disabled':''}>Back</button>
+  <button class="btn" data-act="${st.frame===3?'go':'frame'}" data-v="${st.frame===3?'practice':'1'}">${st.frame===3?'Practise it':'Next'}</button></div>`;
+}
+function projects(){
+  return `<div class="app-h"><div><h3>Pick something to make</h3><p class="sub">Sized for ${YARN[st.yarn].label} yarn</p></div></div>
+  <div class="cards">${PROJECTS.map(p=>`<button class="pcard ${p.id==='beanie'?'open':'locked'}" data-act="${p.id==='beanie'?'project':'locked'}" data-v="${p.stage}">
+    <svg viewBox="0 0 100 70" aria-hidden="true"><path class="sil" d="${p.d}"/></svg>
+    <b>${p.name}</b><span class="tag ${p.id==='beanie'?'live':''}">${p.id==='beanie'?'Try it now':'Stage '+p.stage} · ${p.time}</span></button>`).join('')}</div>`;
+}
+function steps(){
+  const y=YARN[st.yarn];
+  return [
+    {t:'Gather your kit',kind:'parts'},
+    {t:'Cast on',text:`Cast on ${y.cast} stitches with the long-tail cast-on. Keep them loose enough to slide along the needle.`,recipe:`CO ${y.cast}`,tip:'Before the slip knot, pull out a tail about three times the hat\'s circumference, roughly 150 cm.'},
+    {t:'Join in the round',text:'Spread the stitches along the needle with every loop hanging the same way and no twist. Slip the marker onto the right needle, then knit the first stitch on the left needle to close the circle.',recipe:'PM, join',tip:'A twisted join cannot be fixed later. Check twice before that first stitch.'},
+    {t:'Knit the ribbed brim',rows:6,text:'Knit 2, purl 2, all the way round. Slip the marker across each time you reach it. Stop when the brim measures 5 cm.',recipe:'*K2, P2; rep from * to end',tip:'Bring the yarn to the front before purling and to the back before knitting. Pass it between the needles, never over them.'},
+    {t:'Knit the body',rows:12,text:'Knit every stitch of every round. Worked in the round, that gives smooth stockinette with no purling. Stop when the hat measures 14 cm from the cast-on edge.',recipe:'K all sts',tip:'Try it on as you go. The stitches stretch safely on a circular needle.'},
+    {t:'Shape the crown',rows:9,text:`Decrease round: knit ${y.crownK}, knit 2 together, and repeat around. Then knit one plain round. Repeat both rounds, knitting one stitch fewer before each decrease, until ${y.sections*2} stitches remain.`,recipe:`*K${y.crownK}, k2tog; rep from *`,tip:'Switch to double-pointed needles once the stitches no longer reach around the circular.'},
+    {t:'Close and finish',text:'Cut the yarn, leaving a 20 cm tail. Thread it through the remaining stitches with the tapestry needle, pull tight like a drawstring, and weave every end into the inside.',recipe:'Fasten off',tip:'A gentle wash and a flat dry (blocking) evens out the stitches before gifting.'}
+  ];
+}
+const PARTS=[
+  ['Yarn','1× 100 g ball','<circle cx="22" cy="22" r="15"/><path d="M10 14q12 4 22 16M8 24q12-2 22 10M18 8q12 8 16 20"/>'],
+  ['Circular needle, 40 cm','1×','<path d="M6 8l10 12M38 8L28 20M16 20c-10 22 22 22 12 0"/>'],
+  ['Double-pointed needles','set of 5','<path d="M8 36L20 8M16 38L28 10M24 38L36 10"/>'],
+  ['Stitch marker','1×','<circle cx="22" cy="22" r="9"/>'],
+  ['Tapestry needle','1×','<path d="M8 36L34 10"/><ellipse cx="33" cy="11" rx="2" ry="5" transform="rotate(45 33 11)"/>'],
+  ['Tape measure','1×','<rect x="6" y="14" width="32" height="16" rx="3"/><path d="M12 14v6M18 14v4M24 14v6M30 14v4"/>']
+];
+function builder(){
+  const all=steps(),s=all[st.step],y=YARN[st.yarn],last=st.step===all.length-1;
+  let body;
+  if(s.kind==='parts'){
+    body=`<div class="parts">${PARTS.map((p,i)=>`<div class="part"><svg viewBox="0 0 44 44" aria-hidden="true">${p[2]}</svg><b>${i===1?p[0].replace('Circular needle','Circular needle '+y.needle):p[0]}</b><span class="qty">${p[1]}</span></div>`).join('')}</div>
+    <p class="sub">Fits a 54 to 58 cm head. Sized for ${y.label} yarn at ${y.gauge} stitches per 10 cm.</p>`;
+  } else {
+    body=`<div class="illo">${beanieSVG(st.step,st.count)}</div>
+    <p>${s.text}</p><div class="recipe">${s.recipe}</div>
+    ${s.rows?`<div class="panel"><div class="counter"><div><b>Round counter</b><p class="sub">Each tap adds a row to the picture</p></div>
+      <div class="row"><button class="round" data-act="count" data-v="-1" aria-label="One round fewer">−</button><output>${st.count}</output><button class="round plus" data-act="count" data-v="1" aria-label="Add one round">+</button></div></div></div>`:''}
+    <p class="tip">${s.tip}</p>`;
+  }
+  return `<button class="back" data-act="go" data-v="projects">← All projects</button>
+  <div><span class="tag">Ribbed beanie · step ${st.step+1} of ${all.length}</span><h3 style="font-size:1.35rem">${s.t}</h3></div>
+  <div class="progress">${all.map((_,i)=>`<i class="${i<=st.step?'d':''}"></i>`).join('')}</div>
+  ${body}
+  <div class="nav2"><button class="btn ghost" data-act="step" data-v="-1" ${st.step===0?'disabled':''}>Back</button>
+  <button class="btn" data-act="${last?'finish':'step'}" data-v="1">${last?'Finished!':st.step===0?'I have everything':'Done, next step'}</button></div>`;
+}
+function newQuiz(){
+  const order=SWATCHES.map((_,i)=>i).sort(()=>Math.random()-.5);
+  const a=st.quiz?order.find(i=>i!==st.quiz.a):order[0];
+  const opts=[a,...order.filter(i=>i!==a).slice(0,2)].sort(()=>Math.random()-.5);
+  st.quiz={a,opts,pick:null};
+}
+function practice(){
+  if(!st.quiz)newQuiz();
+  const q=st.quiz,sw=SWATCHES[q.a];
+  return `<div class="app-h"><div><h3>Practice</h3><p class="sub">Five minutes without needles</p></div><span class="streak">${st.score} / ${st.asked} right</span></div>
+  <div class="panel"><div><span class="tag live">Game</span><h4 style="font-size:1.08rem">Name that swatch</h4></div>
+    <div class="illo" style="background:var(--surface)">${swatchSVG(sw.f,8,12)}</div>
+    <p class="sub">V shapes are knit stitches. Curved bumps are purls.</p>
+    <div class="opts">${q.opts.map(i=>`<button class="opt ${q.pick!==null?(i===q.a?'right':i===q.pick?'wrong':''):''}" data-act="answer" data-v="${i}" ${q.pick!==null?'disabled':''}>${SWATCHES[i].name}</button>`).join('')}</div>
+    ${q.pick!==null?`<p><b>${q.pick===q.a?'Correct.':'It is '+sw.name.toLowerCase()+'.'}</b> ${sw.why}</p><button class="btn" data-act="nextq">Next swatch</button>`:''}
+  </div>
+  <div class="glist">
+    ${[['Chart reader','Tap out a row from a stitch chart'],['Spot the dropped stitch','Find the ladder before it runs'],['Abbreviation flashcards','K, P, k2tog, ssk, yo, PM'],['Gauge trainer','Count stitches across 10 cm']].map(g=>`<div class="gitem"><div><b>${g[0]}</b><span>${g[1]}</span></div><span class="tag">Phase 2</span></div>`).join('')}
+  </div>`;
+}
+function coach(){
+  const m=st.coach,photo=st.photo[m],res=st.result[m];
+  const drop=`<div class="drop">${photo?`<img src="${photo}" alt="Your uploaded photo">`:''}
+    <b style="color:var(--ink)">${m==='check'?'Photo of your knitting':'Photo of the item you want'}</b>
+    <span>${m==='check'?'Lay it flat in daylight and fill the frame.':'A shop photo, a screenshot or a snap of a friend\'s hat.'}</span>
+    <input type="file" accept="image/*" id="photo-${m}" aria-label="Choose a photo">
+    <button class="btn small" data-act="result">See a sample result</button></div>`;
+  let out='';
+  if(res&&m==='check')out=`<span class="badge">Sample result${photo?', not your photo':''}</span>
+    <div class="illo">${swatchSVG(()=>'k',8,12,[4,6])}</div>
+    <div class="issue"><b>Row 5, stitch 7: purled by accident.</b> Drop that one stitch down to the bump, then hook it back up knit-wise with a crochet hook. No need to rip out rows.</div>
+    <div class="ok"><b>Edges and tension look even.</b> You are on step 5, Knit the body. About 9 cm to go.</div>
+    <button class="btn ghost" data-act="soon">Show me the fix, step by step</button>`;
+  if(res&&m==='ref')out=`<span class="badge">Sample result${photo?', not your photo':''}</span>
+    <div class="panel"><dl class="find">
+      <dt>Item</dt><dd>Beanie with folded brim</dd>
+      <dt>Built</dt><dd>Bottom-up, in the round</dd>
+      <dt>Stitch</dt><dd>2×2 rib brim, stockinette body</dd>
+      <dt>Colours</dt><dd>One</dd>
+      <dt>Yarn</dt><dd>Looks like worsted. Confirm from your ball band.</dd>
+      <dt>Stage</dt><dd>3, In the round</dd></dl></div>
+    <p class="sub">Next it asks for your head measurement and a gauge swatch, then fills the beanie template.</p>
+    <button class="btn" data-act="project">Build my steps</button>`;
+  return `<div class="app-h"><div><h3>Photo coach</h3><p class="sub">Show it a photo, get the next move</p></div></div>
+  <div class="seg"><button data-act="coach" data-v="check" aria-pressed="${m==='check'}">Check my work</button><button data-act="coach" data-v="ref" aria-pressed="${m==='ref'}">Knit from a photo</button></div>
+  ${drop}${out}`;
+}
+const VIEWS={learn,lesson,projects,builder,practice,coach};
+const NOTES={
+  learn:['Home and learning path',['<b>Your yarn</b> comes first. Tap a weight and every project resizes, including needle size and cast-on count.','<b>Six stages</b> in a fixed order. Each lists its skills and what you make at the end.','Tap <b>The knit stitch</b> under Stage 1 to open a lesson.']],
+  lesson:['Technique lesson',['One motion per frame, with big pictures and one sentence each.','The traditional rhyme gives each frame a name you can remember at the needles.','The last frame hands off to a practice game.']],
+  projects:['Project picker',['Every item shows its stage and a time estimate, so you know what you are signing up for.','Later items stay visible but greyed, as something to work toward.','Tap <b>Ribbed beanie</b> to open the builder.']],
+  builder:['Step-by-step builder',['Starts with a <b>kit list</b>, like the parts page of a building set.','The picture is drawn from pattern data. New rows show in pink, finished rows in grey.','On knitting steps, tap <b>+</b> on the round counter and watch the hat grow.','Numbers come from the yarn you chose on the home screen.']],
+  practice:['Practice and games',['<b>Name that swatch</b> is playable. Reading your own stitches is the skill that makes mistakes fixable.','Swatches are generated, so the game never runs out of questions.','Four more exercises are listed for phase 2.']],
+  coach:['Photo coach',['<b>Check my work</b> marks the mistake on a picture and gives one fix at a time.','<b>Knit from a photo</b> reports what it recognised, then hands off to the builder.','You can choose a real photo to see the flow. Results shown here are samples until phase 3.']]
+};
+const TABS=[['learn','Learn','<path d="M4 6h7a3 3 0 013 3v10a2 2 0 00-2-2H4zM20 6h-6v13"/>'],['projects','Projects','<path d="M5 14c0-6 3-9 7-9s7 3 7 9v4H5zM5 14h14"/>'],['practice','Practice','<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>'],['coach','Coach','<rect x="3" y="7" width="18" height="12" rx="2"/><circle cx="12" cy="13" r="3.5"/><path d="M8 7l1.5-2h5L16 7"/>']];
+const TABOF={lesson:'learn',builder:'projects'};
+
+function render(keepScroll){
+  const sc=$('#screen'),top=sc.scrollTop;
+  sc.innerHTML=VIEWS[st.view]();
+  sc.scrollTop=keepScroll?top:0;
+  const cur=TABOF[st.view]||st.view;
+  $('#tabs').innerHTML=TABS.map(t=>`<button data-act="go" data-v="${t[0]}" aria-current="${cur===t[0]}"><svg viewBox="0 0 24 24" aria-hidden="true">${t[2]}</svg>${t[1]}</button>`).join('');
+  const n=NOTES[st.view];
+  $('#noteTitle').textContent=n[0];
+  $('#noteList').innerHTML=n[1].map(x=>`<li>${x}</li>`).join('');
+  $('#jump').innerHTML=[['learn','Home'],['lesson','Lesson'],['projects','Projects'],['builder','Builder'],['practice','Game'],['coach','Photo coach']].map(j=>`<button class="chip ${st.view===j[0]?'on':''}" data-act="go" data-v="${j[0]}">${j[1]}</button>`).join('');
+}
+let tt;
+function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,2400);}
+
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]');if(!b)return;
+  const a=b.dataset.act,v=b.dataset.v;let keep=true;
+  if(a==='go'){st.view=v;keep=false;}
+  else if(a==='yarn')st.yarn=v;
+  else if(a==='open')st.open=st.open===+v?0:+v;
+  else if(a==='lesson'){st.view='lesson';st.frame=0;keep=false;}
+  else if(a==='frame')st.frame=Math.max(0,Math.min(3,st.frame+ +v));
+  else if(a==='project'){st.view='builder';st.step=0;st.count=0;keep=false;}
+  else if(a==='locked'){toast('Unlocks at stage '+v+'. Only the beanie opens in this prototype.');return;}
+  else if(a==='soon'){toast('Planned, not in this prototype yet.');return;}
+  else if(a==='step'){st.step=Math.max(0,Math.min(6,st.step+ +v));st.count=0;keep=false;}
+  else if(a==='finish'){toast('Beanie done. Stage 3 badge earned.');st.view='projects';keep=false;}
+  else if(a==='count'){const max=steps()[st.step].rows;st.count=Math.max(0,st.count+ +v);if(+v>0&&st.count===max)toast('Picture complete. Keep counting until you reach the measurement.');}
+  else if(a==='answer'){st.quiz.pick=+v;st.asked++;if(+v===st.quiz.a)st.score++;}
+  else if(a==='nextq')newQuiz();
+  else if(a==='coach')st.coach=v;
+  else if(a==='result')st.result[st.coach]=true;
+  render(keep);
+});
+document.addEventListener('change',e=>{
+  if(!e.target.matches('input[type=file]'))return;
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();r.onload=()=>{st.photo[st.coach]=r.result;st.result[st.coach]=true;render(true);};r.readAsDataURL(f);
+});
+$('#stages').innerHTML=STAGES.map(s=>`<div class="stg"><span class="n">${s.n}</span><h3>${s.name}</h3><p>${s.skills}</p><p class="mk"><span class="tag">You make</span><br>${s.makes}</p></div>`).join('');
+render();
+})();
+</script>
