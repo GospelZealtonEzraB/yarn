@@ -3,11 +3,14 @@
   --wool:#C92C63;--wool2:#E0608C;--wool-edge:#7A1239;--sun:#EDB021;
   font-family:"DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:var(--bg);line-height:1.55;
 }
-@media (prefers-color-scheme:dark){:root{
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#121528;--surface:#1B1F38;--surface2:#262B4A;--ink:#ECEEF8;--muted:#A3A9C6;--line:#363C61;
   --wool:#F26D9E;--wool2:#D94F84;--wool-edge:#3A0F22;--sun:#F2C14E;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121528;--surface:#1B1F38;--surface2:#262B4A;--ink:#ECEEF8;--muted:#A3A9C6;--line:#363C61;
+  --wool:#F26D9E;--wool2:#D94F84;--wool-edge:#3A0F22;--sun:#F2C14E;color-scheme:dark}
 *{box-sizing:border-box}
-body{margin:0}
+body{margin:0;background:var(--bg);color:var(--ink)}
 main{max-width:920px;margin:0 auto;padding:28px 16px 64px;display:flex;flex-direction:column;gap:24px}
 h1,h2{font-family:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;line-height:1.12;margin:0;text-wrap:balance}
 h1{font-size:clamp(1.8rem,5vw,2.6rem)}h2{font-size:1.35rem}
