@@ -27,8 +27,11 @@ export function knit(castOn: number, recipes: string[], construction: Constructi
   const rows = recipes.map((recipe, i) => {
     const worked = parseRow(recipe, onNeedle)
     onNeedle = produced(worked)
+    // Every entry in a row stands for one stitch left on the needle. A kfb leaves two, so it is
+    // shown as the knit it starts as, followed by the extra stitch it makes.
+    const made: StitchId[] = worked.flatMap((s): StitchId[] => (s === 'kfb' ? ['k', 'kfb'] : [s]))
     const wrongSide = construction === 'flat' && i % 2 === 1
-    return wrongSide ? worked.map((s) => STITCHES[s].reverse) : [...worked].reverse()
+    return wrongSide ? made.map((s) => STITCHES[s].reverse) : [...made].reverse()
   })
   return { construction, castOn, rows }
 }

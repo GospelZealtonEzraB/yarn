@@ -17,19 +17,29 @@ const rowGroups: Schema = {
   description: 'Rows of this section. Each group is a list of row recipes worked in order, the whole list repeated `repeat` times. Empty for steps with no row-by-row knitting.',
   items: obj({ rows: { type: 'array', items: { type: 'string' } }, repeat: { type: 'integer' } }, ['rows', 'repeat']),
 }
-const patternSchema: Schema = obj({
+const sections: Schema = { type: 'array', items: obj({
+  title: { type: 'string' },
+  instructions: { type: 'string', description: 'What to do in this section, in plain words for the knitter.' },
+  row_groups: rowGroups,
+  length_cm: { type: 'number', description: 'Finished length of this section. 0 if it has no rows.' },
+  until: { type: 'string', description: 'What tells the knitter to stop, e.g. "the piece measures 14 cm". Empty if not needed.' },
+  tip: { type: 'string' },
+}, ['title', 'instructions', 'row_groups', 'length_cm', 'until', 'tip']) }
+const draftSchema: Schema = obj({ construction: { type: 'string', enum: ['flat', 'round'] }, cast_on: { type: 'integer' }, sections }, ['construction', 'cast_on', 'sections'])
+const pieceSchema: Schema = obj({
+  name: { type: 'string', description: 'What this part is, e.g. "Head", "Ear", "Scarf".' },
+  quantity: { type: 'integer', description: 'How many identical ones to make.' },
+  colour_hex: { type: 'string', description: 'Its main colour as #rrggbb, taken from the photo or request.' },
   construction: { type: 'string', enum: ['flat', 'round'] },
   cast_on: { type: 'integer' },
-  halved: { type: 'boolean', description: 'True if the finished item is a tube or is folded in half, so it is seen doubled when laid flat.' },
-  sections: { type: 'array', items: obj({
-    title: { type: 'string' },
-    instructions: { type: 'string', description: 'What to do in this section, in plain words for the knitter.' },
-    row_groups: rowGroups,
-    length_cm: { type: 'number', description: 'Finished length of this section. 0 if it has no rows.' },
-    until: { type: 'string', description: 'What tells the knitter to stop, e.g. "the piece measures 14 cm". Empty if not needed.' },
-    tip: { type: 'string' },
-  }, ['title', 'instructions', 'row_groups', 'length_cm', 'until', 'tip']) },
-}, ['construction', 'cast_on', 'halved', 'sections'])
+  stuffed: { type: 'boolean' },
+  sections,
+  place: obj({
+    x_cm: { type: 'number' }, y_cm: { type: 'number' }, z_cm: { type: 'number' },
+    tilt_deg: { type: 'number', description: 'Rotation toward the front (+) or back (-) from pointing straight up.' },
+    lean_deg: { type: 'number', description: 'Rotation toward the item\'s left (+) or right (-) from pointing straight up.' },
+  }, ['x_cm', 'y_cm', 'z_cm', 'tilt_deg', 'lean_deg']),
+}, ['name', 'quantity', 'colour_hex', 'construction', 'cast_on', 'stuffed', 'sections', 'place'])
 
 const str = { type: 'string' }
 const strs = { type: 'array', items: str }
@@ -40,7 +50,7 @@ export const TOOLS = [
   { type: 'function', name: 'rows_for_length', description: 'About how many rows or rounds make a given length at this knitter\'s gauge, for a kind of fabric. An estimate: always also tell the knitter what to measure.', parameters: obj({ length_cm: { type: 'number' }, fabric: { type: 'string', enum: ['stockinette', 'rib', 'garter', 'textured'] } }, ['length_cm', 'fabric']) },
   { type: 'function', name: 'stitch_library', description: 'The knit-and-purl stitch patterns the app knows, with the stitch multiple each needs.', parameters: obj({}, []) },
   { type: 'function', name: 'library_rows', description: 'Correct row recipes for one stitch pattern from the library, over a given number of stitches, flat or in the round. Returns one full repeat to use as a row group.', parameters: obj({ pattern_id: str, stitches: { type: 'integer' }, construction: { type: 'string', enum: ['flat', 'round'] } }, ['pattern_id', 'stitches', 'construction']) },
-  { type: 'function', name: 'check_pattern', description: 'Knits a draft pattern stitch by stitch and reports the stitch count after each section, or the exact row that does not fit. Call it until the pattern passes.', parameters: obj({ pattern: patternSchema }, ['pattern']) },
+  { type: 'function', name: 'check_pattern', description: 'Knits one draft piece stitch by stitch and reports the stitch count after each section, or the exact row that does not fit. Call it for every piece until each passes.', parameters: obj({ piece: draftSchema }, ['piece']) },
   { type: 'function', name: 'submit_plan', description: 'Hand in the finished plan. It is checked again; if anything fails you get the problems back and must fix them and resubmit.', parameters: obj({
     title: str, summary: { type: 'string', description: 'Two sentences: what it is and how it fits.' }, what_i_saw: { type: 'string', description: 'What you understood from the photo and request.' },
     difficulty: { type: 'string', enum: ['beginner', 'easy', 'intermediate', 'advanced'] },
@@ -49,10 +59,10 @@ export const TOOLS = [
     tools: { type: 'array', items: obj({ name: str, size_or_qty: str, why: str }, ['name', 'size_or_qty', 'why']) },
     skills: { type: 'array', description: 'Every skill the design needs, in the order to learn them, prerequisites first.', items: obj({ name: str, why: str, lesson_id: { type: ['string', 'null'], description: 'Id of the existing lesson that teaches it, or null.' } }, ['name', 'why', 'lesson_id']) },
     new_lessons: { type: 'array', description: 'One lesson for every skill whose lesson_id is null.', items: obj({ skill: { type: 'string', description: 'Exactly the skill name it teaches.' }, title: str, goal: str, steps: strs, check: { type: 'string', description: 'How the knitter can tell it worked.' }, watch: { type: 'string', description: 'The most common mistake and its fix.' } }, ['skill', 'title', 'goal', 'steps', 'check', 'watch']) },
-    pattern: patternSchema,
-    finishing: strs,
+    pieces: { type: 'array', description: 'Every separately knitted part. One for a hat or scarf, several for a toy or anything sewn together. Identical parts are one piece with a quantity.', items: pieceSchema },
+    assembly: { type: 'array', items: str, description: 'In order: stuffing, joining the pieces, embroidery and finishing.' },
     not_checked: { type: 'array', items: str, description: 'Every part of the design the engine could not verify, in plain words.' },
-  }, ['title', 'summary', 'what_i_saw', 'difficulty', 'assumptions', 'yarn', 'tools', 'skills', 'new_lessons', 'pattern', 'finishing', 'not_checked']) },
+  }, ['title', 'summary', 'what_i_saw', 'difficulty', 'assumptions', 'yarn', 'tools', 'skills', 'new_lessons', 'pieces', 'assembly', 'not_checked']) },
 ] as const
 
 export type ToolName = (typeof TOOLS)[number]['name']
@@ -67,7 +77,7 @@ export function runTool(name: string, args: Record<string, unknown>, state: Stat
         lessons_finished: LESSONS.filter((l) => state.lessons[l.id]).map((l) => l.id),
         lessons_in_app: LESSONS.map((l) => ({ id: l.id, title: l.title, stage: l.stage })),
         projects_finished: Object.keys(state.made),
-        row_recipes: 'Rows use this shorthand only: K<n>, P<n>, k2tog, ssk, yo, M1L, M1R, separated by commas. A recipe without stars repeats to the end of the row ("K2, P2"). With stars the part between * and "; rep from *" repeats, with optional stitches before and after ("K1, *K2, P2; rep from *, K1"). "K1" alone means knit every stitch. Anything else (cables, colour changes, picking up stitches, binding off mid-row) cannot be written as rows: describe it in the section instructions and list it in not_checked.',
+        row_recipes: 'Rows use this shorthand only: K<n>, P<n>, k2tog, ssk, yo, M1L, M1R, kfb (knit front and back: 1 stitch becomes 2), separated by commas. A recipe without stars repeats to the end of the row ("K2, P2"). With stars the part between * and "; rep from *" repeats, with optional stitches before and after ("K1, *K2, P2; rep from *, K1"). "K1" alone means knit every stitch. Anything else (cables, colour changes, picking up stitches, binding off mid-row) cannot be written as rows: describe it in the section instructions and list it in not_checked.',
       } }
     case 'stitches_for_width': {
       const m = Math.max(1, Math.round(Number(args.multiple) || 1)), plus = Math.round(Number(args.plus) || 0)
@@ -90,7 +100,7 @@ export function runTool(name: string, args: Record<string, unknown>, state: Stat
       } catch (e) { return { output: { error: (e as Error).message } } }
     }
     case 'check_pattern':
-      return { output: checkPattern(args.pattern as Plan['pattern']) }
+      return { output: checkPattern((args.piece ?? args.pattern) as Plan['pieces'][number]) }
     case 'submit_plan': {
       const plan = args as unknown as Plan
       const errors = checkPlan(plan, LESSONS.map((l) => l.id))

@@ -46,6 +46,17 @@ export function projectsFor(custom: { id: string; plan: Plan }[]): ProjectDef[] 
   }))]
 }
 
+/** A built-in project, a custom plan, or one piece of a custom plan (id "custom-x#2"). */
+export function findProject(id: string, custom: { id: string; plan: Plan }[]): ProjectDef | undefined {
+  const [base, index] = id.split('#')
+  const own = custom.find((c) => c.id === base)
+  if (!own) return PROJECTS.find((p) => p.id === base)
+  const i = Number(index ?? 0), piece = own.plan.pieces[i]
+  if (!piece) return undefined
+  const whole = projectsFor([own])[PROJECTS.length]
+  return own.plan.pieces.length === 1 ? whole : { ...whole, id, name: piece.name, build: (s) => toPattern(own.plan, s, i) }
+}
+
 export const YARNS: Record<string, { label: string; gauge: number; needle: string }> = {
   dk: { label: 'DK', gauge: 22, needle: '4 mm' },
   worsted: { label: 'Worsted', gauge: 18, needle: '5 mm' },

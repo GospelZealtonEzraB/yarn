@@ -9,7 +9,8 @@ import { needleFor, PROJECTS } from '../patterns/catalog'
 import { LESSONS, STAGES } from '../content/lessons'
 import { EXTRAS } from '../content/extras'
 import { checkRequest, explain, parseCheck, replyText } from './coach'
-import { checkPattern, checkPlan, expand, toPattern, type Plan } from '../agent/plan'
+import { checkPattern, checkPlan, expand, normalise, toPattern, type Plan } from '../agent/plan'
+import { findProject, projectsFor } from '../patterns/catalog'
 import { design, DESIGNER, MAX_TURNS } from '../agent/run'
 import { runTool, TOOLS } from '../agent/tools'
 import { INITIAL } from '../store'
@@ -505,12 +506,13 @@ describe('photo coach', () => {
 })
 
 describe('design agent: the plan', () => {
-  const plan = beaniePlan as unknown as Plan
+  // The fixture is real agent output in the first, one-piece format, so it also proves old saved plans still load.
+  const plan = normalise(beaniePlan)
   const ids = LESSONS.map((l) => l.id)
   const copy = (): Plan => JSON.parse(JSON.stringify(plan))
   it('a plan the live agent produced passes every check and knits to the count it claims', () => {
     expect(checkPlan(plan, ids)).toEqual([])
-    const c = checkPattern(plan.pattern)
+    const c = checkPattern(plan.pieces[0])
     expect(c.ok).toBe(true)
     expect(c.after[c.after.length - 1].stitches).toBeLessThanOrEqual(16) // the crown really closes
   })
@@ -525,13 +527,13 @@ describe('design agent: the plan', () => {
     for (const s of p.steps) for (const r of new Set(s.rows ?? [])) expect(inWords(r)).toMatch(/\.$/)
   })
   it('pinpoints the row that does not fit', () => {
-    const bad = copy(); bad.pattern.sections[2].row_groups = [{ rows: ['K3, P2'], repeat: 4 }]
-    const c = checkPattern(bad.pattern)
+    const bad = copy(); bad.pieces[0].sections[2].row_groups = [{ rows: ['K3, P2'], repeat: 4 }]
+    const c = checkPattern(bad.pieces[0])
     expect(c.ok).toBe(false)
     expect(c.errors[0]).toMatch(/Deep folded brim.*row 1.*92 stitches/)
   })
   it('catches wrong-side rows that break the count in flat knitting', () => {
-    const c = checkPattern({ construction: 'flat', cast_on: 10, halved: false, sections: [{ title: 'Body', instructions: 'x', row_groups: [{ rows: ['K1', '*K2, k2tog; rep from *, K2', 'K3'], repeat: 1 }], length_cm: 2, until: '', tip: '' }] })
+    const c = checkPattern({ construction: 'flat', cast_on: 10, sections: [{ title: 'Body', instructions: 'x', row_groups: [{ rows: ['K1', '*K2, k2tog; rep from *, K2', 'K3'], repeat: 1 }], length_cm: 2, until: '', tip: '' }] })
     expect(c.ok).toBe(false)
     expect(c.errors[0]).toMatch(/row 3/)
   })
@@ -544,8 +546,8 @@ describe('design agent: the plan', () => {
     expect(checkPlan(c, ids).join(' ')).toMatch(/at least 3 steps/)
   })
   it('refuses runaway patterns', () => {
-    const big = copy(); big.pattern.sections[2].row_groups = [{ rows: ['P2, K2'], repeat: 5000 }]
-    expect(checkPattern(big.pattern).errors[0]).toMatch(/under 3000/)
+    const big = copy(); big.pieces[0].sections[2].row_groups = [{ rows: ['P2, K2'], repeat: 5000 }]
+    expect(checkPattern(big.pieces[0]).errors[0]).toMatch(/under 3000/)
   })
   it('expands row groups in order', () =>
     expect(expand({ title: '', instructions: '', row_groups: [{ rows: ['A', 'B'], repeat: 2 }, { rows: ['C'], repeat: 1 }], length_cm: 1, until: '', tip: '' })).toEqual(['A', 'B', 'A', 'B', 'C']))
@@ -567,9 +569,9 @@ describe('design agent: tools', () => {
     expect(o.lessons_in_app).toHaveLength(LESSONS.length)
   })
   it('only accepts a plan that passes, and returns the problems otherwise', () => {
-    const plan = beaniePlan as unknown as Plan
+    const plan = normalise(beaniePlan)
     expect(runTool('submit_plan', plan as unknown as Record<string, unknown>, INITIAL).plan).toBeDefined()
-    const bad = JSON.parse(JSON.stringify(plan)); bad.pattern.cast_on = 91
+    const bad = JSON.parse(JSON.stringify(plan)); bad.pieces[0].cast_on = 91
     const r = runTool('submit_plan', bad, INITIAL)
     expect(r.plan).toBeUndefined()
     expect((r.output as { fix_these: string[] }).fix_these.length).toBeGreaterThan(0)
@@ -580,10 +582,10 @@ describe('design agent: tools', () => {
 })
 
 describe('design agent: the loop', () => {
-  const plan = beaniePlan as unknown as Plan
+  const plan = normalise(beaniePlan)
   const call = (name: string, args: object, id: string) => ({ type: 'function_call', name, arguments: JSON.stringify(args), call_id: id })
   it('feeds tool results back, lets the agent recover from a failed check, and stops when a plan is accepted', async () => {
-    const bad = JSON.parse(JSON.stringify(plan)); bad.pattern.cast_on = 91
+    const bad = JSON.parse(JSON.stringify(plan)); bad.pieces[0].cast_on = 91
     const script = [
       { id: 'r1', output: [{ type: 'reasoning', summary: [{ text: '**Looking at the request**\n\nA hat.' }] }, call('knitter_profile', {}, 'c1')] },
       { id: 'r2', output: [call('submit_plan', bad, 'c2')] },
@@ -680,4 +682,59 @@ describe('coach relay', () => {
     expect((await call({}, { ALLOWED_ORIGIN: 'https://app.example' })).res.status).toBe(503)
   })
   it('answers the browser\'s permission check', async () => expect((await call({ method: 'OPTIONS' })).res.status).toBe(204))
+})
+
+describe('designs made of several pieces', () => {
+  const sec = (title: string, rows: string[], repeat: number, cm: number) => ({ title, instructions: 'Work as shown.', row_groups: [{ rows, repeat }], length_cm: cm, until: 'it measures right', tip: '' })
+  const place = { x_cm: 0, y_cm: 0, z_cm: 0, tilt_deg: 0, lean_deg: 0 }
+  const toy = (): Plan => ({
+    ...normalise(beaniePlan), title: 'Bunny',
+    pieces: [
+      { name: 'Body', quantity: 1, colour_hex: '#c9737a', construction: 'round', cast_on: 8, stuffed: true, place,
+        sections: [sec('Base', ['kfb'], 1, 1), sec('Widen', ['*K1, kfb; rep from *', 'K1'], 1, 1), sec('Sides', ['K1'], 12, 6), sec('Narrow', ['*K1, k2tog; rep from *', 'K1'], 1, 1)] },
+      { name: 'Ear', quantity: 2, colour_hex: '#c9737a', construction: 'flat', cast_on: 6, stuffed: false, place: { ...place, x_cm: 2, y_cm: 14, lean_deg: 10 },
+        sections: [sec('Ear', ['K1'], 20, 6)] },
+    ],
+    assembly: ['Stuff the body.', 'Sew on the ears.'],
+  })
+  const ids = LESSONS.map((l) => l.id)
+  it('a toy passes when every piece knits correctly, including increases with kfb', () => {
+    expect(checkPlan(toy(), ids)).toEqual([])
+    const body = checkPattern(toy().pieces[0])
+    expect(body.after.map((a) => a.stitches)).toEqual([16, 24, 24, 16])
+  })
+  it('a row always has one entry per stitch left on the needle, even after kfb', () => {
+    const f = knit(4, ['kfb', 'K1'], 'round')
+    expect(f.rows.map((r) => r.length)).toEqual([8, 8])
+  })
+  it('names the piece when one of several fails', () => {
+    const bad = toy(); bad.pieces[1].sections[0].row_groups = [{ rows: ['K4'], repeat: 3 }]
+    expect(checkPlan(bad, ids).join(' ')).toMatch(/Piece "Ear".*does not fit 6/)
+  })
+  it('insists on assembly steps and sensible placement for a many-piece design', () => {
+    const a = toy(); a.assembly = []
+    expect(checkPlan(a, ids).join(' ')).toMatch(/assembly must say how to join/)
+    const b = toy(); (b.pieces[0].place as unknown as Record<string, unknown>).y_cm = 'high'
+    expect(checkPlan(b, ids).join(' ')).toMatch(/Piece "Body": place needs/)
+  })
+  it('each piece is its own project in the builder, and the whole design is one card in the list', () => {
+    const custom = [{ id: 'custom-1', plan: toy() }]
+    expect(projectsFor(custom).filter((p) => p.id.startsWith('custom-'))).toHaveLength(1)
+    const ear = findProject('custom-1#1', custom)!
+    expect(ear.name).toBe('Ear')
+    const pattern = ear.build!({ gauge: 18, headCm: 56, handCm: 19, yarn: 'Test', needle: '5 mm' })
+    expect([pattern.castOn, pattern.construction, pattern.halved]).toEqual([6, 'flat', false])
+    expect(pattern.fits).toMatch(/Make 2/)
+    expect(pattern.steps.some((s) => s.title === 'Finishing')).toBe(false) // assembly belongs to the overview
+    expect(findProject('custom-1#9', custom)).toBeUndefined()
+    expect(findProject('beanie', custom)!.name).toBe('Ribbed beanie')
+  })
+  it('a stuffed piece that starts from a few stitches becomes a closed, rounded solid', () => {
+    const pattern = toPattern(toy(), { gauge: 18, headCm: 56, handCm: 19, yarn: 'Test', needle: '5 mm' }, 0)
+    const p = profile(product(pattern, knit(pattern.castOn, pattern.steps.flatMap((s) => s.rows ?? []), 'round'), 18))
+    const widest = Math.max(...p.map((q) => q[0]))
+    expect(p[0][0]).toBeLessThan(widest)
+    expect(p[p.length - 1][0]).toBeLessThan(widest)
+    expect(p.flat().every(Number.isFinite)).toBe(true)
+  })
 })

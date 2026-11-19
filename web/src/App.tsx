@@ -4,6 +4,7 @@ import { Coach } from './screens/Coach'
 import { Lab } from './screens/Lab'
 import { Learn } from './screens/Learn'
 import { Lesson } from './screens/Lesson'
+import { PlanOverview } from './screens/PlanOverview'
 import { Practice } from './screens/Practice'
 import { Projects } from './screens/Projects'
 import { load, save, StoreContext, type State } from './store'
@@ -22,6 +23,8 @@ export default function App() {
   const [tab, setTab] = useState<Tab>('learn')
   const [lesson, setLesson] = useState<string | null>(null)
   const [project, setProject] = useState<string | null>(null)
+  // A design made of several pieces opens on its overview. Each piece then opens in the builder.
+  const manyPieces = !!project && (state.custom.find((c) => c.id === project.split('#')[0])?.plan.pieces.length ?? 0) > 1
   const set = (patch: Partial<State>) => setState((s) => { const next = { ...s, ...patch }; save(next); return next })
   useEffect(() => { window.scrollTo(0, 0) }, [tab, lesson, project])
 
@@ -29,7 +32,9 @@ export default function App() {
     <StoreContext.Provider value={{ state, set }}>
       <main>
         {tab === 'learn' && (lesson ? <Lesson key={lesson} id={lesson} back={() => setLesson(null)} open={setLesson} /> : <Learn open={setLesson} openProject={(id) => { setTab('make'); setProject(id) }} />)}
-        {tab === 'make' && (project ? <Builder id={project} back={() => setProject(null)} openLesson={(id) => { setTab('learn'); setLesson(id) }} /> : <Projects open={setProject} />)}
+        {tab === 'make' && (!project ? <Projects open={setProject} />
+          : manyPieces && !project.includes('#') ? <PlanOverview id={project} back={() => setProject(null)} openPiece={setProject} openLesson={(id) => { setTab('learn'); setLesson(id) }} />
+          : <Builder key={project} id={project} back={() => setProject(project.includes('#') ? project.split('#')[0] : null)} openLesson={(id) => { setTab('learn'); setLesson(id) }} />)}
         {tab === 'practice' && <Practice />}
         {tab === 'lab' && <Lab />}
         {tab === 'coach' && <Coach openProject={(id) => { setTab('make'); setProject(id) }} openLesson={(id) => { setTab('learn'); setLesson(id) }} />}

@@ -22,6 +22,21 @@ export interface PlanSection {
 }
 export interface PlanSkill { name: string; why: string; lesson_id: string | null }
 export interface PlanLesson { skill: string; title: string; goal: string; steps: string[]; check: string; watch: string }
+/** Where a piece sits in the finished item, for the assembled 3D picture. */
+export interface Place { x_cm: number; y_cm: number; z_cm: number; tilt_deg: number; lean_deg: number }
+/** One separately knitted part: a hat is one piece, a toy is several. */
+export interface PlanPiece {
+  name: string
+  /** How many identical ones to make, e.g. 2 ears. */
+  quantity: number
+  colour_hex: string
+  construction: Construction
+  cast_on: number
+  /** True for parts that are filled, so they are round rather than flat. */
+  stuffed: boolean
+  sections: PlanSection[]
+  place: Place
+}
 export interface Plan {
   title: string
   summary: string
@@ -32,9 +47,22 @@ export interface Plan {
   tools: { name: string; size_or_qty: string; why: string }[]
   skills: PlanSkill[]
   new_lessons: PlanLesson[]
-  pattern: { construction: Construction; cast_on: number; halved: boolean; sections: PlanSection[] }
-  finishing: string[]
+  pieces: PlanPiece[]
+  /** How the pieces are stuffed, joined and finished, in order. */
+  assembly: string[]
   not_checked: string[]
+  /** The knitter's reference photo, kept small, so the target is always in view. */
+  photo?: string
+}
+
+const NO_PLACE: Place = { x_cm: 0, y_cm: 0, z_cm: 0, tilt_deg: 0, lean_deg: 0 }
+
+/** Brings a plan saved in the earlier one-piece format up to the current shape. */
+export function normalise(raw: unknown): Plan {
+  const p = raw as Plan & { pattern?: { construction: Construction; cast_on: number; sections: PlanSection[] }; finishing?: string[] }
+  if (Array.isArray(p.pieces)) return p
+  const { pattern, finishing, ...rest } = p
+  return { ...rest, pieces: [{ name: p.title, quantity: 1, colour_hex: '', stuffed: false, place: NO_PLACE, construction: pattern!.construction, cast_on: pattern!.cast_on, sections: pattern!.sections }], assembly: finishing ?? [] }
 }
 
 export const MAX_ROWS = 3000
@@ -51,12 +79,13 @@ export interface PatternCheck {
 }
 
 /** Knits the pattern stitch by stitch and reports exactly where it stops working. */
-export function checkPattern(p: Plan['pattern']): PatternCheck {
+export function checkPattern(p: Pick<PlanPiece, 'construction' | 'cast_on' | 'sections'>): PatternCheck {
   const errors: string[] = []
   if (!Number.isInteger(p?.cast_on) || p.cast_on < 2 || p.cast_on > 600) errors.push('cast_on must be a whole number between 2 and 600.')
   if (p?.construction !== 'flat' && p?.construction !== 'round') errors.push('construction must be "flat" or "round".')
   if (!Array.isArray(p?.sections) || p.sections.length === 0) errors.push('The pattern needs at least one section.')
   if (errors.length) return { ok: false, errors, after: [] }
+  for (const sec of p.sections) if (!Array.isArray(sec.row_groups)) return { ok: false, errors: [`Section "${sec.title}" needs row_groups (an empty list if it has no rows).`], after: [] }
   const total = p.sections.reduce((n, s) => n + (Array.isArray(s.row_groups) ? expand(s).length : 0), 0)
   if (total === 0) errors.push('No section has any rows. At least one section must be row-by-row knitting.')
   if (total > MAX_ROWS) errors.push(`The pattern has ${total} rows. Keep it under ${MAX_ROWS}.`)
@@ -102,14 +131,25 @@ export function checkPlan(plan: Plan, lessonIds: string[]): string[] {
     if (!text(l.title) || !text(l.goal) || !text(l.check)) errors.push(`New lesson for "${l.skill}" needs a title, goal and check.`)
     if (!Array.isArray(l.steps) || l.steps.length < 3) errors.push(`New lesson "${l.title}" needs at least 3 steps.`)
   }
-  for (const s of plan.pattern?.sections ?? []) if (!text(s.title) || !text(s.instructions)) errors.push('Every section needs a title and instructions.')
-  return [...errors, ...checkPattern(plan.pattern).errors]
+  if (!Array.isArray(plan.pieces) || plan.pieces.length === 0) return [...errors, 'The plan needs at least one piece.']
+  if (plan.pieces.length > 12) errors.push('Keep it to 12 pieces or fewer. Use quantity for identical pieces.')
+  for (const piece of plan.pieces) {
+    const where = `Piece "${piece.name}": `
+    if (!text(piece.name)) errors.push('Every piece needs a name.')
+    if (!(piece.quantity >= 1 && piece.quantity <= 8)) errors.push(`${where}quantity must be between 1 and 8.`)
+    if (!piece.place || !['x_cm', 'y_cm', 'z_cm', 'tilt_deg', 'lean_deg'].every((k) => Number.isFinite(piece.place[k as keyof Place]))) errors.push(`${where}place needs x_cm, y_cm, z_cm, tilt_deg and lean_deg as numbers.`)
+    for (const s of piece.sections ?? []) if (!text(s.title) || !text(s.instructions)) errors.push(`${where}every section needs a title and instructions.`)
+    errors.push(...checkPattern(piece).errors.map((e) => where + e))
+  }
+  if (plan.pieces.length > 1 && !(Array.isArray(plan.assembly) && plan.assembly.length > 0)) errors.push('With more than one piece, assembly must say how to join them.')
+  return errors
 }
 
-/** The plan as a pattern the builder can run: steps, rows, lengths and a kit list. */
-export function toPattern(plan: Plan, settings: Settings): Pattern {
+/** One piece of the plan as a pattern the builder can run: steps, rows, lengths and a kit list. */
+export function toPattern(plan: Plan, settings: Settings, pieceIndex = 0): Pattern {
+  const piece = plan.pieces[pieceIndex]
   const rowG = stockinetteRows(settings.gauge)
-  const steps: Step[] = plan.pattern.sections.map((s) => {
+  const steps: Step[] = piece.sections.map((s) => {
     const rows = expand(s)
     const first = s.row_groups[0]
     return {
@@ -122,12 +162,13 @@ export function toPattern(plan: Plan, settings: Settings): Pattern {
       ...(rows.length ? { rows, cm: s.length_cm > 0 ? s.length_cm : Math.max(Math.round((rows.length / rowG) * 100) / 10, 0.5) } : {}),
     }
   })
-  for (const f of plan.finishing ?? []) steps.push({ title: 'Finishing', text: f, recipe: 'Finish', picture: 'done' })
+  // A one-piece item is finished in the builder. A many-piece item is assembled from the overview.
+  if (plan.pieces.length === 1) for (const f of plan.assembly ?? []) steps.push({ title: 'Finishing', text: f, recipe: 'Finish', picture: 'done' })
   return {
-    castOn: plan.pattern.cast_on,
-    construction: plan.pattern.construction,
-    halved: !!plan.pattern.halved,
-    fits: plan.summary,
+    castOn: piece.cast_on,
+    construction: piece.construction,
+    halved: piece.construction === 'round',
+    fits: plan.pieces.length === 1 ? plan.summary : `${piece.name}${piece.quantity > 1 ? `. Make ${piece.quantity}, all the same.` : '.'}`,
     kit: [{ name: `${plan.yarn.weight} yarn`, qty: plan.yarn.amount }, ...plan.tools.map((t) => ({ name: t.name, qty: t.size_or_qty || '1' }))],
     steps,
   }

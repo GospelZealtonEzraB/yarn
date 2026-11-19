@@ -10,7 +10,7 @@ import type { StitchId } from '../engine/stitch'
 /** A run of the same stitch as one tile, in the colours used everywhere else: knit pink, purl blue, shaping grey. */
 export function StitchTile({ type, count }: { type: StitchId; count: number }) {
   const cls = type === 'k' ? 'a' : type === 'p' ? 'b' : 'c'
-  const label = { k: 'K', p: 'P', k2tog: 'k2tog', ssk: 'ssk', yo: 'yo', m1l: 'M1L', m1r: 'M1R' }[type]
+  const label = { k: 'K', p: 'P', k2tog: 'k2tog', ssk: 'ssk', yo: 'yo', m1l: 'M1L', m1r: 'M1R', kfb: 'kfb' }[type]
   return (
     <span className={`tile ${cls}`}>
       <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -19,7 +19,7 @@ export function StitchTile({ type, count }: { type: StitchId; count: number }) {
         {type === 'k2tog' && <path d="M5 18L19 6M5 6l6 6" />}
         {type === 'ssk' && <path d="M19 18L5 6M19 6l-6 6" />}
         {type === 'yo' && <circle cx="12" cy="12" r="6" />}
-        {(type === 'm1l' || type === 'm1r') && <path d="M12 5v14M5 12h14" />}
+        {(type === 'm1l' || type === 'm1r' || type === 'kfb') && <path d="M12 5v14M5 12h14" />}
       </svg>
       <b>{type === 'k' || type === 'p' ? `${label}${count}` : label}</b>
     </span>

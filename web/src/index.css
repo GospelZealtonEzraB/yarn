@@ -267,3 +267,8 @@ textarea{font:inherit;padding:10px 12px;border:1.5px solid var(--line);border-ra
 .kit li.why>b{white-space:normal}
 .plain{margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:4px;font-size:.92rem}
 .tag.new{color:var(--wool)}
+.p3d.tall{height:340px}
+.reference{max-width:220px}
+.reference img{border-radius:10px;display:block}
+.lesson.piece{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px}
+.dot{width:16px;height:16px;border-radius:50%;background:var(--ya);border:1px solid var(--line)}

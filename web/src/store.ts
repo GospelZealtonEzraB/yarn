@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react'
 import { needleFor, YARNS } from './patterns/catalog'
-import type { Plan } from './agent/plan'
+import { normalise, type Plan } from './agent/plan'
 import type { Settings } from './patterns/types'
 
 export interface State {
@@ -26,7 +26,9 @@ const KEY = 'loopwise.v1'
 export function load(): State {
   try {
     const raw = localStorage.getItem(KEY)
-    return raw ? { ...INITIAL, ...JSON.parse(raw) } : INITIAL
+    if (!raw) return INITIAL
+    const s: State = { ...INITIAL, ...JSON.parse(raw) }
+    return { ...s, custom: s.custom.map((c) => ({ ...c, plan: normalise(c.plan) })) }
   } catch { return INITIAL }
 }
 export function save(s: State) {

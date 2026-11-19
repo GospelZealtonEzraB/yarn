@@ -72,7 +72,10 @@ export function Coach({ openProject, openLesson }: { openProject: (id: string) =
 
   const runDesign = async () => {
     setBusy(true); clear()
-    try { setPlan(await design({ request: ask, photo: photo ?? undefined }, state, send, (a) => setLog((l) => [...l, a]))) }
+    try {
+      const made = await design({ request: ask, photo: photo ?? undefined }, state, send, (a) => setLog((l) => [...l, a]))
+      setPlan({ ...made, photo: photo ?? undefined })
+    }
     catch (e) { setError((e as Error).message) } finally { setBusy(false) }
   }
   const runCheck = async () => {
@@ -158,9 +161,14 @@ export function Coach({ openProject, openLesson }: { openProject: (id: string) =
           <header className="top"><h1>{plan.title}</h1></header>
           <PlanDetails plan={plan} openLesson={openLesson} />
           <section className="card">
-            <h2>The pattern</h2>
-            <p className="sub">Cast on {plan.pattern.cast_on}, worked {plan.pattern.construction === 'round' ? 'in the round' : 'flat'}. Every row was test-knitted by the app's engine before you saw this.</p>
-            <ol className="steps">{plan.pattern.sections.map((s) => <li key={s.title}><b>{s.title}.</b> {s.instructions}</li>)}</ol>
+            <h2>{plan.pieces.length > 1 ? `${plan.pieces.length} pieces to knit` : 'The pattern'}</h2>
+            <p className="sub">Every row of every piece was test-knitted by the app's engine before you saw this.</p>
+            {plan.pieces.map((piece) => (
+              <details key={piece.name} className="more" open={plan.pieces.length === 1}>
+                <summary><b>{piece.name}</b>{piece.quantity > 1 ? ` × ${piece.quantity}` : ''} · cast on {piece.cast_on}, {piece.construction === 'round' ? 'in the round' : 'flat'}</summary>
+                <ol className="steps">{piece.sections.map((s) => <li key={s.title}><b>{s.title}.</b> {s.instructions}</li>)}</ol>
+              </details>
+            ))}
           </section>
           <button className="btn wide" onClick={keep}>Save and start building</button>
           <p className="sub">An AI designed this. The stitch counts are proven to fit together, but nobody has knitted it. Knit a swatch first and try the piece on as you go.</p>

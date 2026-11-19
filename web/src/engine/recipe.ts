@@ -43,7 +43,7 @@ export const produced = (row: StitchId[]) => row.reduce((n, s) => n + STITCHES[s
 const WORDS: Record<string, (n: number) => string> = {
   k: (n) => `knit ${n}`, p: (n) => `purl ${n}`,
   k2tog: () => 'knit 2 together', ssk: () => 'slip, slip, knit', yo: () => 'yarn over',
-  m1l: () => 'make 1 left', m1r: () => 'make 1 right',
+  m1l: () => 'make 1 left', m1r: () => 'make 1 right', kfb: () => 'knit into the front and back',
 }
 function words(part: string): string[] {
   return part.split(/[,\s]+/).filter(Boolean).map((raw) => {

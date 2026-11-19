@@ -4,7 +4,7 @@ import { knit } from '../engine/fabric'
 import { product as shapeOf } from '../engine/product'
 import { inWords, parts, repeats } from '../engine/recipe'
 import { DIAGRAMS } from '../engine/technique'
-import { projectsFor } from '../patterns/catalog'
+import { findProject } from '../patterns/catalog'
 import { rowsFor, stitchPattern } from '../patterns/stitches'
 import { settingsOf, useStore } from '../store'
 import { PieceView, YarnSwatch } from '../ui/FabricView'
@@ -18,8 +18,11 @@ const CLOSE_UP = 8 // stitches shown in the close-up
 
 export function Builder({ id, back, openLesson }: { id: string; back: () => void; openLesson: (id: string) => void }) {
   const { state, set } = useStore()
-  const project = projectsFor(state.custom).find((p) => p.id === id)!
-  const plan = state.custom.find((c) => c.id === id)?.plan
+  const project = findProject(id, state.custom)!
+  // A one-piece design shows its whole plan here. A piece of a larger design shows it on the overview instead.
+  const whole = state.custom.find((c) => c.id === id.split('#')[0])?.plan
+  const plan = whole && whole.pieces.length === 1 ? whole : undefined
+  const piece = whole && whole.pieces.length > 1
   const [view, setView] = useState<'flat' | '3d' | 'worn'>('flat')
   const style = state.styles[id] ?? project.styles?.[0]
   // Some stitches need a stitch count this size does not give. Offer only the ones that work.
@@ -91,7 +94,7 @@ export function Builder({ id, back, openLesson }: { id: string; back: () => void
 
   return (
     <>
-      <button className="back" onClick={back}>← All projects</button>
+      <button className="back" onClick={back}>{piece ? `← ${whole!.title}` : '← All projects'}</button>
       <header className="top">
         <span className="tag">{project.name} · step {stepNo + 1} of {last + 1} · {percent}% knitted</span>
         <h1>{step ? step.title : 'Before you start'}</h1>
@@ -124,7 +127,7 @@ export function Builder({ id, back, openLesson }: { id: string; back: () => void
             <p className="sub">Yarn amounts are estimates. Buy a little extra.</p>
           </section>}
           {plan && <PlanDetails plan={plan} openLesson={openLesson} />}
-          {!plan && <section className="card">
+          {!plan && !piece && <section className="card">
             <h2>Skills this uses</h2>
             <div className="lessons">
               {needs.map((l) => (
