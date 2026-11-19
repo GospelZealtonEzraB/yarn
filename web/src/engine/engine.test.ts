@@ -723,14 +723,19 @@ describe('designs made of several pieces', () => {
     expect(toPattern(t, settings, 1).halved).toBe(true)
     expect(toPattern(toy(), settings, 1).halved).toBe(false)
   })
-  it('a stuffed piece is drawn in at both ends and keeps its knitted width in the middle', () => {
+  it('a stuffed piece is as long as it was knitted, as wide as its stitch count, and drawn in at both ends', () => {
     const pattern = toPattern(toy(), { gauge: 18, headCm: 56, handCm: 19, yarn: 'Test', needle: '5 mm' }, 0)
     const shape = product(pattern, knit(pattern.castOn, pattern.steps.flatMap((s) => s.rows ?? []), 'round'), 18)
-    const plain = profile(shape), soft = stuffedProfile(shape), mid = Math.floor(soft.length / 2)
+    const soft = stuffedProfile(shape), mid = Math.floor(soft.length / 2)
     expect(soft[0][0]).toBeCloseTo(0, 5)
     expect(soft[soft.length - 1][0]).toBeCloseTo(0, 5)
-    expect(soft[mid][0]).toBeCloseTo(plain[mid][0], 1)
-    for (let i = 0; i < soft.length; i++) expect(soft[i][0]).toBeLessThanOrEqual(plain[i][0] + 1e-9)
+    expect(soft[soft.length - 1][1]).toBeCloseTo(shape.lengthCm, 5)
+    expect(soft[mid][0] * 2 * Math.PI).toBeCloseTo((24 / 18) * 10, 0) // 24 stitches around at the middle
+  })
+  it('warns when a piece widens faster than fabric can lie smooth, and stays quiet for gentle shaping', () => {
+    const warn = (rows: string[], repeat: number, cm: number) => (runTool('check_pattern', { piece: { construction: 'round', cast_on: 12, sections: [sec('Base', rows, repeat, cm)] } }, INITIAL).output as { shaping_warnings: string[] }).shaping_warnings
+    expect(warn(['kfb', 'kfb', 'kfb'], 1, 1.7)[0]).toMatch(/from 12 to 96 stitches in 1.7 cm.*too fast/)
+    expect(warn(['*K1, kfb; rep from *', 'K1', 'K1', 'K1'], 1, 1.7)).toEqual([])
   })
   it('checking a piece also reports its finished size, so pieces can be placed to touch', () => {
     const o = runTool('check_pattern', { piece: toy().pieces[0] }, INITIAL).output as { finished_size: { length_cm: number; if_solid: { widest_radius_cm: number } } }

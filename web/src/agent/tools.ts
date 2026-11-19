@@ -108,7 +108,16 @@ export function runTool(name: string, args: Record<string, unknown>, state: Stat
       // Finished size, so the agent can place pieces from real measurements instead of guessing.
       const widest = Math.max(draft.cast_on, ...result.after.map((a) => a.stitches))
       const width = Math.round((widest / g) * 100) / 10
-      return { output: { ...result, finished_size: {
+      // Fabric that widens or narrows faster than it grows in length cannot lie smooth: it ruffles or puckers.
+      // A circle's edge grows by 2π for every unit of radius, which sets the fastest smooth change per section.
+      const warnings: string[] = []
+      let from = draft.cast_on
+      result.after.forEach((a, i) => {
+        const sec = draft.sections[i], limit = Math.max(Math.round((2 * Math.PI * sec.length_cm * g) / 10), 2)
+        if (a.rows && Math.abs(a.stitches - from) > limit) warnings.push(`Section "${sec.title}" goes from ${from} to ${a.stitches} stitches in ${sec.length_cm} cm. That is too fast to lie smooth: at this gauge it can change by about ${limit} stitches over that length. Spread the shaping over more rows, or change fewer stitches.`)
+        from = a.stitches
+      })
+      return { output: { ...result, shaping_warnings: warnings, finished_size: {
         length_cm: Math.round(draft.sections.reduce((n, sec) => n + (sec.length_cm > 0 ? sec.length_cm : 0), 0) * 10) / 10,
         widest_width_flat_cm: width,
         if_solid: { widest_distance_around_cm: width, widest_radius_cm: Math.round((width / (2 * Math.PI)) * 10) / 10 },

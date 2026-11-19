@@ -99,15 +99,27 @@ export function profile(p: Product, step = 0.25): [number, number, number][] {
 }
 
 /**
- * A filled piece: the same profile with its ends drawn in, the way stuffing and a gathered or
- * seamed end round off a knitted tube. The middle keeps its knitted width; `t` runs 0 to 1 along it.
+ * A filled piece, such as a toy's head or limb. Stuffing pushes the fabric out to its full
+ * stitch-count width and rounds off the gathered or seamed ends, and the piece stays as long as it
+ * was knitted. So here height is simply the distance along the knitting, the radius comes straight
+ * from the stitch counts, and both ends are drawn in to a point.
  */
 export function stuffedProfile(p: Product, step = 0.25): [number, number, number][] {
-  const base = profile(p, step), top = base[base.length - 1][1] || 1
-  return base.map(([r, y, u]): [number, number, number] => {
-    const t = y / top
-    return [r * (1 - Math.abs(2 * t - 1) ** 3) ** (1 / 3), y, u]
-  })
+  const side = p.outline.slice(p.outline.length / 2).reverse()
+  const radiusAt = (u: number) => {
+    for (let i = 1; i < side.length; i++) if (u <= side[i][0]) {
+      const [u0, v0] = side[i - 1], [u1, v1] = side[i]
+      return ((v0 + (v1 - v0) * (u1 === u0 ? 1 : (u - u0) / (u1 - u0))) * 2) / Math.PI
+    }
+    return (side[side.length - 1][1] * 2) / Math.PI
+  }
+  const out: [number, number, number][] = []
+  const L = p.lengthCm || 1
+  for (let u = 0; u < L + step / 2; u += step) {
+    const at = Math.min(u, L), t = at / L
+    out.push([radiusAt(at) * (1 - Math.abs(2 * t - 1) ** 3) ** (1 / 3), at, at])
+  }
+  return out
 }
 
 /**

@@ -20,7 +20,7 @@ How to work:
 3. Break the item into pieces the way a knitter would make it. A hat or scarf is one piece. A toy, a garment or anything sewn together is several: for a stuffed animal that means head, body, ears, arms, legs and any accessories, each its own piece. Identical parts are one piece with a quantity. Never merge a many-part item into one tube.
 4. For each piece decide the construction and its sections in knitting order, including non-knitting steps. Shape each piece so it matches the photo's proportions: compare how big the head is to the body, how long the ears and limbs are, and size the pieces to match. Where a part widens, increase; where it narrows, decrease. A round head needs increases to a wide middle and decreases back, not a straight tube.
 5. Get every stitch and row count from the tools. Never guess arithmetic.
-6. Call check_pattern for every piece and fix what it reports. Repeat until each passes.
+6. Call check_pattern for every piece and fix what it reports. Repeat until each passes. If it returns shaping_warnings, the piece widens or narrows too abruptly to look right: respread the shaping and check again until the warnings are gone.
 7. Place every piece for the assembled 3D picture (see Placement).
 8. Write the assembly: stuffing, joining, embroidered or attached details, finishing, in order.
 9. List every skill the design needs, in the order to learn them, prerequisites first. Where an existing lesson teaches a skill, give its id. For every other skill write a new lesson: a goal, 4 to 8 concrete steps a beginner can follow with needles in hand (yarn held in the right hand, English style), how to tell it worked, and the most common mistake with its fix.
@@ -56,6 +56,7 @@ const describe = (name: string, output: unknown): Activity => {
   if (name === 'rows_for_length') return { kind: 'tool', text: `Estimated a length: about ${o.rows} rows` }
   if (name === 'stitch_library') return { kind: 'tool', text: 'Looked through the stitch-pattern library' }
   if (name === 'library_rows') return o.error ? { kind: 'problem', text: `A stitch pattern did not fit: ${o.error}` } : { kind: 'tool', text: 'Fetched the rows for a stitch pattern' }
+  if (name === 'check_pattern' && o.ok && (o.shaping_warnings as string[])?.length) return { kind: 'problem', text: `A piece changes shape too abruptly, reshaping: ${(o.shaping_warnings as string[])[0]}` }
   if (name === 'check_pattern') return o.ok ? { kind: 'tool', text: 'Test-knitted a piece in the engine: every row fits' } : { kind: 'problem', text: `Test-knitting found a problem, revising: ${(o.errors as string[])[0]}` }
   if (name === 'submit_plan') return o.accepted ? { kind: 'done', text: 'Plan passed every check' } : { kind: 'problem', text: `The plan was sent back to be fixed: ${(o.fix_these as string[])[0]}` }
   return { kind: 'tool', text: name }

@@ -106,8 +106,20 @@ in a loop until it has a plan that passes every check:
 7. It hands in one structured plan (JSON). The app checks it again and sends
    it back with the problems if anything fails.
 
-The plan is saved as a project. The builder, the row cards, the finished-item
-picture and the progress tracking all run from it.
+A plan is a list of pieces. A hat is one piece; a toy is several (head, body,
+ears, limbs), each with its own cast-on, shaping, colour, quantity and position.
+Each piece says what it becomes when finished: a solid (a tube, or a flat
+piece seamed and stuffed), a flat panel, or a strip wrapped around the item.
+
+The plan is saved as a project. A one-piece plan opens in the builder. A
+many-piece plan opens on an overview: a 3D model assembled from the pieces,
+which fills in as they are knitted, the reference photo, the list of pieces,
+and the assembly steps. Each piece then runs in the builder.
+
+The 3D model is computed from stitch counts and the positions the agent gives,
+so it shows shape, proportion and progress as simple rounded forms. It is not
+photo-realistic. A photo-realistic model would come from an image-to-3D
+service such as Tripo and could not carry progress.
 
 What is proven: the rows fit together and reach the stitch counts claimed.
 What is not: fit, appearance, anything the engine's shorthand cannot express
