@@ -9,8 +9,8 @@ that produces the instructions.
 | Area | What works |
 |---|---|
 | Learn | Yarn setup (weight, gauge, head size). Six-stage path. 16 written lessons covering stages 1 to 3, each with steps, a success check, a common mistake, and where possible an interactive drawing of the fabric. |
-| Make | Garter scarf and ribbed beanie. Kit list, numbered steps, row counter, and a stitch-for-stitch picture of the piece that grows as you count. Both resize to any gauge from 10 to 34 stitches per 10 cm. |
-| Practice | Name that swatch (drawn by the engine, so it never repeats a stored image). Flashcards for 18 pattern abbreviations. |
+| Make | Garter scarf, ribbed scarf, fingerless mitts (knitted flat and seamed) and ribbed beanie. Kit list, numbered steps, row counter, and a stitch-for-stitch picture of the piece that grows as you count. All resize to any gauge from 10 to 34 stitches per 10 cm. |
+| Practice | Four games: name that swatch, find the wrong stitch, chart reader (including wrong-side rows), and flashcards for 18 pattern abbreviations. |
 | Lab | Type any row of shorthand and see the yarn path and chart. Colour by row, stitch or depth, hide layers, zoom to one stitch, trace the yarn. |
 | Progress | Saved on the device. No account, no server. |
 | Install | Installable, works offline once hosted. |
@@ -36,8 +36,8 @@ that produces the instructions.
 1. Hosting: the GitHub Pages workflow is in place. Pages must be switched on in the repository settings (Settings, Pages, Source: GitHub Actions).
 2. Loop geometry for yo, M1L and M1R in the yarn-path view (k2tog and ssk are done).
 4. Movement diagrams for k2tog and ssk, a hands-on visual for the cast-on, and a knitter's review of all diagrams.
-5. Ribbed scarf and fingerless mitts templates.
-6. Two more games: chart reader, spot the dropped stitch.
+5. Mitts in the round with a thumb gusset, and mittens.
+6. A dropped-stitch drawing, so the rescue lesson and a game can show the ladder.
 7. Measured row gauge as an optional setting.
 
 ## Version 3: photo coach

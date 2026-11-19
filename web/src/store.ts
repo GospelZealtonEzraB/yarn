@@ -6,12 +6,13 @@ export interface State {
   yarn: string
   gauge: number
   headCm: number
+  handCm: number
   lessons: Record<string, boolean>
   projects: Record<string, { step: number; count: number }>
   quiz: { right: number; asked: number }
 }
 
-export const INITIAL: State = { yarn: 'worsted', gauge: 18, headCm: 56, lessons: {}, projects: {}, quiz: { right: 0, asked: 0 } }
+export const INITIAL: State = { yarn: 'worsted', gauge: 18, headCm: 56, handCm: 19, lessons: {}, projects: {}, quiz: { right: 0, asked: 0 } }
 const KEY = 'loopwise.v1'
 
 /** Progress lives on this device only. Storage can be unavailable, and the app must still work. */
@@ -28,6 +29,7 @@ export function save(s: State) {
 export const settingsOf = (s: State): Settings => ({
   gauge: s.gauge,
   headCm: s.headCm,
+  handCm: s.handCm,
   yarn: Object.values(YARNS).find((y) => y.gauge === s.gauge)?.label ?? 'Your',
   needle: needleFor(s.gauge),
 })

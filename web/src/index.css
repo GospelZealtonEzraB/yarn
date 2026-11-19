@@ -143,3 +143,9 @@ figure svg{overflow:hidden}
 .t-labels{transition:opacity .3s}
 .t-labels text{font-family:"DM Sans",system-ui,sans-serif;font-weight:500;fill:var(--ink);stroke:var(--surface2);paint-order:stroke;stroke-linejoin:round}
 @media (prefers-reduced-motion:reduce){.t-arrow,.t-labels{transition:none}}
+.chart-cell.worked{fill:var(--teal-soft)}
+.chart-cell.current{fill:var(--wool-soft);stroke:var(--wool);stroke-width:2.5}
+.chart-dot{fill:var(--ink)}
+.chart-dir{fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.found-ring{fill:none;stroke:var(--hot);stroke-width:3.5;stroke-dasharray:6 5}
+.nav2.even{grid-template-columns:1fr 1fr}

@@ -21,9 +21,9 @@ export interface Stage { n: number; name: string; skills: string; makes: string 
 
 export const STAGES: Stage[] = [
   { n: 1, name: 'First loops', skills: 'Slip knot, long-tail cast-on, knit stitch, bind off, weaving in ends', makes: 'Garter stitch scarf' },
-  { n: 2, name: 'Knit and purl', skills: 'Purl stitch, stockinette, ribbing, reading your stitches, gauge swatches, fixing a dropped stitch', makes: 'Ribbed scarf, textured cowl' },
+  { n: 2, name: 'Knit and purl', skills: 'Purl stitch, stockinette, ribbing, reading your stitches, gauge swatches, fixing a dropped stitch', makes: 'Ribbed scarf, fingerless mitts' },
   { n: 3, name: 'In the round', skills: 'Circular needles, joining, stitch markers, k2tog and ssk decreases, double-pointed needles', makes: 'Ribbed beanie' },
-  { n: 4, name: 'Shaping', skills: 'M1L and M1R increases, thumb gussets, picking up stitches, holding stitches on waste yarn', makes: 'Fingerless mitts, mittens' },
+  { n: 4, name: 'Shaping', skills: 'M1L and M1R increases, thumb gussets, picking up stitches, holding stitches on waste yarn', makes: 'Mitts in the round, mittens' },
   { n: 5, name: 'Fingers and texture', skills: 'Glove fingers, cables, simple lace, lifelines, fixing mistakes rows later', makes: 'Gloves, cabled headband' },
   { n: 6, name: 'Colour and garments', skills: 'Stripes, Fair Isle, heel turns, raglan shaping, seaming, blocking, altering patterns', makes: 'Socks, top-down sweater' },
 ]

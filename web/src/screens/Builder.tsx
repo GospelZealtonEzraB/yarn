@@ -17,7 +17,7 @@ export function Builder({ id, back }: { id: string; back: () => void }) {
   if (!built.pattern) return (
     <>
       <button className="back" onClick={back}>← All projects</button>
-      <div className="callout warn"><b>These numbers do not make a pattern</b><p>{built.error} Check the gauge and head size on the Learn tab.</p></div>
+      <div className="callout warn"><b>These numbers do not make a pattern</b><p>{built.error} Check your measurements on the Learn tab.</p></div>
     </>
   )
   const { pattern, fabric } = built

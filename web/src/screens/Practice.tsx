@@ -3,6 +3,7 @@ import { GLOSSARY } from '../content/lessons'
 import { knit, type Construction } from '../engine/fabric'
 import { useStore } from '../store'
 import { YarnSwatch } from '../ui/FabricView'
+import { ChartReader, SpotTheMistake } from './Games'
 
 const SWATCHES: { name: string; recipe: string; how: Construction; why: string }[] = [
   { name: 'Stockinette', recipe: 'K1', how: 'round', why: 'Smooth columns of V shapes. Knit one row, purl the next when worked flat.' },
@@ -19,7 +20,7 @@ const question = (avoid = -1) => {
 
 export function Practice() {
   const { state, set } = useStore()
-  const [mode, setMode] = useState<'swatch' | 'cards'>('swatch')
+  const [mode, setMode] = useState<'swatch' | 'mistake' | 'chart' | 'cards'>('swatch')
   const [q, setQ] = useState(() => question())
   const [pick, setPick] = useState<number | null>(null)
   const [card, setCard] = useState(0)
@@ -38,9 +39,13 @@ export function Practice() {
       </header>
       <div className="seg">
         <button aria-pressed={mode === 'swatch'} onClick={() => setMode('swatch')}>Name that swatch</button>
+        <button aria-pressed={mode === 'mistake'} onClick={() => setMode('mistake')}>Find the mistake</button>
+        <button aria-pressed={mode === 'chart'} onClick={() => setMode('chart')}>Chart reader</button>
         <button aria-pressed={mode === 'cards'} onClick={() => setMode('cards')}>Flashcards</button>
       </div>
-      {mode === 'swatch' ? (
+      {mode === 'mistake' && <SpotTheMistake />}
+      {mode === 'chart' && <ChartReader />}
+      {mode === 'swatch' && (
         <section className="card">
           <div className="between"><h2>Which fabric is this?</h2><span className="pill">{state.quiz.right} of {state.quiz.asked} right</span></div>
           <figure><YarnSwatch fabric={fabric} /></figure>
@@ -58,7 +63,8 @@ export function Practice() {
             </>
           )}
         </section>
-      ) : (
+      )}
+      {mode === 'cards' && (
         <section className="card">
           <div className="between"><h2>Pattern shorthand</h2><span className="pill">{card + 1} of {GLOSSARY.length}</span></div>
           <button className="flash" onClick={() => setFlipped(!flipped)} aria-live="polite">

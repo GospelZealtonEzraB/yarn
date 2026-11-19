@@ -28,6 +28,8 @@ export interface Settings {
   needle: string
   yarn: string
   headCm: number
+  /** Around the hand at the knuckles, in cm. */
+  handCm: number
 }
 
 /** Typical row gauge when the knitter has not measured one. Always presented as an estimate. */

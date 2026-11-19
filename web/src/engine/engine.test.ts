@@ -6,6 +6,7 @@ import { between, BINDOFF, blend, DIAGRAMS, KNIT, PURL, Z } from './technique'
 import { beanie, crownRecipes } from '../patterns/beanie'
 import { needleFor, PROJECTS } from '../patterns/catalog'
 import { LESSONS, STAGES } from '../content/lessons'
+import { withMistake, workingOrder } from './games'
 
 const look = (rows: string[][]) => rows.map((r) => r.join(''))
 
@@ -111,7 +112,7 @@ describe('beanie template', () => {
 })
 
 describe('every project and lesson the app ships', () => {
-  const settings = (gauge: number) => ({ gauge, headCm: 56, yarn: 'Test', needle: needleFor(gauge) })
+  const settings = (gauge: number) => ({ gauge, headCm: 56, handCm: 19, yarn: 'Test', needle: needleFor(gauge) })
   it('each pattern can be worked from cast-on to the last row at every gauge', () => {
     for (const p of PROJECTS) if (p.build) for (let gauge = 10; gauge <= 34; gauge++) {
       const pattern = p.build(settings(gauge))
@@ -132,6 +133,23 @@ describe('every project and lesson the app ships', () => {
     const rows = pattern.steps.flatMap((s) => s.rows ?? [])
     expect(pattern.castOn).toBe(32)
     expect(rows.length % 2).toBe(0)
+  })
+  it('flat ribbing lines up: every column is the same stitch on every row, with knit columns at both edges', () => {
+    for (const id of ['ribscarf', 'mitts']) for (const gauge of [12, 18, 22, 30]) {
+      const pattern = PROJECTS.find((p) => p.id === id)!.build!(settings(gauge))
+      const ribRows = knit(pattern.castOn, pattern.steps[1].rows!, 'flat').rows
+      for (const row of ribRows) expect(row).toEqual(ribRows[0])
+      expect(ribRows[0].slice(0, 2).join('') + ribRows[0].slice(-2).join('')).toBe('kkkk')
+    }
+  })
+  it('the mitts are stockinette between two bands of ribbing, with every section an even number of rows', () => {
+    const pattern = PROJECTS.find((p) => p.id === 'mitts')!.build!(settings(18))
+    const [cuff, hand, top] = [1, 2, 3].map((i) => pattern.steps[i].rows!)
+    for (const rows of [cuff, hand, top]) expect(rows.length % 2).toBe(0)
+    const f = knit(pattern.castOn, [...cuff, ...hand, ...top], 'flat')
+    for (const row of f.rows.slice(cuff.length, cuff.length + hand.length)) expect(row.every((s) => s === 'k')).toBe(true)
+    expect(pattern.castOn % 4).toBe(2)
+    expect(pattern.castOn / 18 * 10).toBeLessThan(19)
   })
   it('every lesson drawing is valid knit and purl fabric', () => {
     for (const l of LESSONS) if (l.see) expect(() => yarnSpans(knit(l.see!.castOn, l.see!.rows, l.see!.construction))).not.toThrow()
@@ -232,5 +250,25 @@ describe('generic diagrams', () => {
   it('bind-off: the lifted stitch keeps its feet in the fabric while its top moves', () => {
     const feet = (i: number) => BINDOFF.steps[i].scene.strands.filter((s) => s.cls === 'old').map((s, n) => (n === 0 ? s.pts[0] : s.pts[s.pts.length - 1]))
     expect(feet(2)).toEqual(feet(0))
+  })
+})
+
+describe('games', () => {
+  it('chart reader: right-side rows read right to left as drawn', () =>
+    expect(workingOrder(['k', 'k', 'p'], false)).toEqual(['p', 'k', 'k']))
+  it('chart reader: wrong-side rows read left to right with every symbol flipped', () =>
+    expect(workingOrder(['k', 'k', 'p'], true)).toEqual(['p', 'p', 'k']))
+  it('chart reader agrees with the fabric engine about what a flat row looks like from the front', () => {
+    // Work row 2 of a chart on the wrong side and check the engine shows the charted symbols on the right side.
+    const charted: ('k' | 'p')[] = ['k', 'p', 'p', 'k']
+    const worked = workingOrder(charted, true).map((s) => s.toUpperCase() + '1').join(', ')
+    expect(knit(4, ['K1', worked], 'flat').rows[1]).toEqual(charted)
+  })
+  it('spot the mistake changes exactly one stitch and leaves the original alone', () => {
+    const clean = knit(12, Array(8).fill('K2, P2'), 'round')
+    const bad = withMistake(clean, 3, 5)
+    const diff = bad.rows.flatMap((r, i) => r.map((s, j) => (s === clean.rows[i][j] ? 0 : 1) as number)).reduce((a, b) => a + b, 0)
+    expect(diff).toBe(1)
+    expect(clean.rows[3][5]).not.toBe(bad.rows[3][5])
   })
 })

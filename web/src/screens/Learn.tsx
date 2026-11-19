@@ -26,6 +26,8 @@ export function Learn({ open }: { open: (lessonId: string) => void }) {
             <input id="gauge" type="number" inputMode="numeric" min={8} max={40} value={state.gauge} onChange={(e) => set({ gauge: +e.target.value })} /></label>
           <label htmlFor="head">Head around, cm
             <input id="head" type="number" inputMode="numeric" min={30} max={70} value={state.headCm} onChange={(e) => set({ headCm: +e.target.value })} /></label>
+          <label htmlFor="hand">Hand around, cm
+            <input id="hand" type="number" inputMode="numeric" min={12} max={28} value={state.handCm} onChange={(e) => set({ handCm: +e.target.value })} /></label>
         </div>
         <p className="sub">Start with <b>{needleFor(state.gauge)}</b> needles. Once you have knitted a gauge swatch, type your own number here.</p>
       </section>
