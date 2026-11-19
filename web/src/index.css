@@ -245,3 +245,10 @@ figure.hero{background:var(--surface);border:1px solid var(--line)}
 .view-toggle button{min-height:32px;padding:4px 14px;font-size:.82rem}
 .prod-texture.textured{stroke-dasharray:2.5 3.5;stroke-width:1.6}
 .swatch-pick{max-width:300px}
+.drop{border:2px dashed var(--line);border-radius:16px;padding:16px 12px;display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center}
+.drop img{max-height:220px;border-radius:10px}
+.drop input{max-width:100%;font-size:.82rem;font-family:inherit;border:0;background:none;padding:0}
+.find{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;margin:0}
+.find dt{font-family:"DM Mono",monospace;font-size:.74rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding-top:3px}
+.find dd{margin:0}
+.card>label,.howto>label{flex:none}

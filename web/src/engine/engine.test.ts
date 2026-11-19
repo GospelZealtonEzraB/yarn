@@ -8,6 +8,7 @@ import { beanie, crownRecipes } from '../patterns/beanie'
 import { needleFor, PROJECTS } from '../patterns/catalog'
 import { LESSONS, STAGES } from '../content/lessons'
 import { EXTRAS } from '../content/extras'
+import { checkRequest, closestProject, explain, identifyRequest, parseCheck, parseIdentify } from './coach'
 import { balanced, repeatWidth, rowsFor, STITCH_PATTERNS } from '../patterns/stitches'
 import { classify } from './product'
 import { withMistake, workingOrder } from './games'
@@ -464,5 +465,49 @@ describe('stitch-pattern library', () => {
     for (const p of PROJECTS) if (p.styles) for (let gauge = 10; gauge <= 34; gauge++) {
       expect(() => p.build!({ gauge, headCm: 56, handCm: 19, yarn: 'Test', needle: '5 mm' }, p.styles![0])).not.toThrow()
     }
+  })
+})
+
+describe('photo coach', () => {
+  const styles = Object.fromEntries(PROJECTS.map((p) => [p.id, p.styles]))
+  it('asks only for a description: the request never asks for counts or a pattern', () => {
+    const body = checkRequest({ project: 'Ribbed beanie', step: 'Knit the body', stitchName: 'Seed stitch', construction: 'round', stitches: 88 }, 'data:image/jpeg;base64,AAAA')
+    expect(body.messages[0].content).toMatch(/Never give stitch counts/)
+    expect(JSON.stringify(body)).not.toContain('88')
+    expect(body.messages[1].content[1]).toEqual({ type: 'image_url', image_url: { url: 'data:image/jpeg;base64,AAAA' } })
+    expect(identifyRequest('data:x').response_format).toEqual({ type: 'json_object' })
+  })
+  it('keeps a well-formed reply', () => {
+    const r = parseCheck(JSON.stringify({ photo_ok: true, photo_advice: '', fabric_seen: 'seed', matches_expected: 'yes', issues: [{ problem: 'A dropped stitch', where: 'third column', fix: 'Hook it back up', confidence: 'high' }], going_well: ['Even edges'], next: 'Carry on' }))
+    expect(r.fabricSeen).toBe('seed')
+    expect(r.issues).toEqual([{ problem: 'A dropped stitch', where: 'third column', fix: 'Hook it back up', confidence: 'high' }])
+  })
+  it('drops anything outside the expected shape instead of showing it', () => {
+    const r = parseCheck(JSON.stringify({ photo_ok: 'yes', fabric_seen: 'cables <b>', matches_expected: 'definitely', issues: [{ problem: '' }, 'nonsense', { problem: 'x'.repeat(900), confidence: 'certain' }, 1, 2, 3, 4], going_well: [5, 'ok'], next: { a: 1 }, cast_on: 120 }))
+    expect(r.fabricSeen).toBe('unclear')
+    expect(r.matchesExpected).toBe('unclear')
+    expect(r.issues).toHaveLength(1)
+    expect(r.issues[0].problem).toHaveLength(300)
+    expect(r.issues[0].confidence).toBe('low')
+    expect(r.goingWell).toEqual(['ok'])
+    expect(r.next).toBe('')
+    expect(JSON.stringify(r)).not.toContain('120')
+  })
+  it('refuses a reply that is not a JSON object', () => {
+    expect(() => parseCheck('Sure! Here is what I see')).toThrow(/could not be read/)
+    expect(() => parseIdentify('[1,2]')).toThrow(/could not be read/)
+  })
+  it('maps what it identified onto patterns the app really has', () => {
+    const seen = (o: object) => parseIdentify(JSON.stringify(o))
+    expect(closestProject(seen({ item: 'hat', stitch: 'seed', colours: 1 }), styles)).toEqual({ project: 'beanie', style: 'seed', exact: true })
+    expect(closestProject(seen({ item: 'scarf', stitch: 'garter', colours: 1 }), styles)).toEqual({ project: 'scarf', exact: true })
+    expect(closestProject(seen({ item: 'scarf', stitch: 'basket', colours: 3 }), styles)).toEqual({ project: 'ribscarf', style: 'basket', exact: false })
+    expect(closestProject(seen({ item: 'hat', stitch: 'other', stitch_other: 'cables' }), styles)).toEqual({ project: 'beanie', style: 'stockinette', exact: false })
+    expect(closestProject(seen({ item: 'sweater' }), styles)).toBeNull()
+  })
+  it('explains service errors in plain words', () => {
+    expect(explain(401, '')).toMatch(/did not accept the key/)
+    expect(explain(429, '')).toMatch(/limit/)
+    expect(explain(404, '{"error":{"message":"The model does not exist"}}')).toMatch(/model/)
   })
 })

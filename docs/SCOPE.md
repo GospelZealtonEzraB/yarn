@@ -66,7 +66,7 @@ about 75 kB to about 220 kB compressed.
   tested by the engine. The wording needs a knitter's read-through.
 - **Yarn-path view draws knit, purl, k2tog and ssk.** Yarn over and M1
   increases appear in the chart only.
-- **Photo coach is a placeholder screen.**
+- **Photo coach runs on the knitter's own OpenAI key**, entered in the app and kept in that browser. There is no server yet, so the app cannot be shared with the coach switched on for other people.
 - **Row gauge is estimated** from stitch gauge. Steps say to trust the tape measure.
 - **The Worn view uses a plain egg-shaped head** with no face or ears, so the hat looks like it covers most of the head. A detailed head model would fix the look. The mitts have no worn view yet.
 - **Scarves have no 3D view.** They are flat, so the to-scale flat picture is the honest one.
@@ -80,14 +80,24 @@ about 75 kB to about 220 kB compressed.
 6. A dropped-stitch drawing, so the rescue lesson and a game can show the ladder.
 7. Measured row gauge as an optional setting.
 
-## Version 3: photo coach
+## Photo coach
 
-Needs a small server and an Anthropic API key.
+Built on OpenAI's vision models (default `gpt-6.1-terra`, changeable in the
+app). The photo is shrunk on the device and sent straight from the browser to
+OpenAI with the knitter's key.
 
-1. Serverless function that accepts a photo plus the current project step.
-2. Check my work: returns marked problems and one fix each, as structured data.
-3. Knit from a photo: returns item, stitch, construction and colour count, which select a template and its options. Stitch counts always come from the template, never from the model.
-4. Paste or photograph a written pattern and have it converted to stitch data, validated by the engine before it is shown.
+- **Check my work:** given the project, step and expected stitch pattern, the
+  model reports the fabric it sees, whether it matches, up to four possible
+  mistakes with a fix and a confidence each, and what looks right.
+- **Knit from a photo:** the model names the item, stitch pattern, colour count
+  and construction. The app maps that to its closest tested pattern and stitch.
+- **Guard rails:** the model is told never to give stitch counts or sizes, and
+  every reply is checked against a fixed shape. Anything else is dropped.
+
+Still to do: a small server so the key does not live in the browser (free
+options: Cloudflare Workers, Vercel, Netlify or Deno Deploy), testing on many
+real photos of mistakes, marking the problem on the photo, and converting
+written patterns.
 
 ## Version 4: advanced
 
@@ -101,7 +111,7 @@ Colourwork charts. Gift log. Optional accounts and sync between devices.
 | Where to host, and whether the site may be public | Needed before the app can be installed on a phone |
 | Who reviews the knitting content | Protects learners from wrong instructions |
 | Illustrator, video, or the technique rig for hand positions | The largest remaining gap for a true beginner |
-| API key and monthly budget for the photo coach | Each photo analysed costs a small amount |
+| Whether to put the photo coach behind a server | Needed before sharing the app with others, so they do not each need a key |
 | English only, or continental too | Doubles the technique content |
 
 ## Where AI is and is not used

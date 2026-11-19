@@ -32,7 +32,7 @@ export default function App() {
         {tab === 'make' && (project ? <Builder id={project} back={() => setProject(null)} openLesson={(id) => { setTab('learn'); setLesson(id) }} /> : <Projects open={setProject} />)}
         {tab === 'practice' && <Practice />}
         {tab === 'lab' && <Lab />}
-        {tab === 'coach' && <Coach />}
+        {tab === 'coach' && <Coach openProject={(id) => { setTab('make'); setProject(id) }} />}
       </main>
       <nav className="tabs" aria-label="Sections">
         {TABS.map(([id, name, icon]) => (
