@@ -32,3 +32,11 @@ export function knit(castOn: number, recipes: string[], construction: Constructi
   })
   return { construction, castOn, rows }
 }
+
+/**
+ * Which way a row was worked, as seen from the right side. Knitters work right
+ * to left; a wrong-side row in flat knitting therefore runs left to right when
+ * viewed from the front.
+ */
+export const isWrongSideRow = (f: Fabric, row: number) => f.construction === 'flat' && row % 2 === 1
+export const workedLeftToRight = isWrongSideRow

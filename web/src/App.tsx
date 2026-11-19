@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import { knit, type Construction } from './engine/fabric'
 import { beanie } from './patterns/beanie'
-import { ChartView, YarnView } from './ui/FabricView'
+import { ChartView } from './ui/FabricView'
+import { StitchExplorer } from './ui/StitchExplorer'
 
 const PRESETS: [string, string, Construction][] = [
   ['Stockinette', 'K1', 'round'],
@@ -49,12 +50,10 @@ export default function App() {
         </div>
         {result.error && <p className="error" role="alert">{result.error}</p>}
         {result.fabric && (
-          <div className="views">
-            <figure><figcaption>Yarn path, right side</figcaption>
-              {yarnOk ? <YarnView fabric={result.fabric} /> : <p className="note">The yarn-path view draws knit and purl so far. Shaping stitches show in the chart until their loop geometry is added and reviewed.</p>}
-            </figure>
-            <figure><figcaption>Chart, right side · blank = knit, dot = purl</figcaption><ChartView fabric={result.fabric} /></figure>
-          </div>
+          <>
+            {yarnOk ? <StitchExplorer fabric={result.fabric} /> : <p className="note">The yarn-path view draws knit and purl so far. Shaping stitches show in the chart until their loop geometry is added and reviewed.</p>}
+            <figure className="chart"><figcaption>Chart, right side · blank = knit, dot = purl</figcaption><ChartView fabric={result.fabric} /></figure>
+          </>
         )}
       </section>
 

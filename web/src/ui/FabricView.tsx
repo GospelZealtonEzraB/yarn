@@ -1,25 +1,6 @@
-import { useMemo } from 'react'
 import type { Fabric } from '../engine/fabric'
 import { STITCHES } from '../engine/stitch'
-import { CELL, yarnSpans } from '../engine/yarnPath'
-
-/** The yarn itself, drawn back layer first so every crossing reads over or under. */
-export function YarnView({ fabric }: { fabric: Fabric }) {
-  const { spans, width, height } = useMemo(() => yarnSpans(fabric), [fabric])
-  return (
-    <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Yarn path of the fabric, right side facing">
-      {([-1, 0, 1] as const).map((z) => {
-        const layer = spans.filter((s) => s.z === z)
-        return (
-          <g key={z} fill="none">
-            {layer.map((s, i) => <path key={i} d={s.d} className="yarn-edge" />)}
-            {layer.map((s, i) => <path key={i} d={s.d} className={`yarn row${s.row % 2}`} />)}
-          </g>
-        )
-      })}
-    </svg>
-  )
-}
+import { CELL } from '../engine/yarnPath'
 
 /** A standard knitting chart. Handles every stitch in the vocabulary. */
 export function ChartView({ fabric }: { fabric: Fabric }) {

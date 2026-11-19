@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { parseRow, produced } from './recipe'
-import { knit } from './fabric'
+import { isWrongSideRow, knit } from './fabric'
 import { yarnSpans } from './yarnPath'
 import { beanie, crownRecipes } from '../patterns/beanie'
 
@@ -28,7 +28,17 @@ describe('fabric, seen from the right side', () => {
     expect(look(knit(5, ['K1, *P1; rep from *'], 'round').rows)).toEqual(['ppppk']))
 })
 
+describe('working direction', () => {
+  it('only odd rows of flat knitting are wrong-side rows', () => {
+    const flat = knit(4, ['K1', 'K1'], 'flat'), round = knit(4, ['K1', 'K1'], 'round')
+    expect([0, 1].map((r) => isWrongSideRow(flat, r))).toEqual([false, true])
+    expect([0, 1].map((r) => isWrongSideRow(round, r))).toEqual([false, false])
+  })
+})
+
 describe('yarn path', () => {
+  it('labels the eight parts of each loop left to right', () =>
+    expect(yarnSpans(knit(2, ['K1'], 'round')).spans.map((s) => s.part)).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5, 6, 7]))
   const z = (type: string) => yarnSpans(knit(1, [type], 'round')).spans.map((s) => s.z)
   it('knit: legs in front, sinkers behind', () => expect(z('K1')).toEqual([-1, 1, 0, 0, 0, 0, 1, -1]))
   it('purl is the exact mirror in depth', () => expect(z('P1')).toEqual(z('K1').map((v) => -v || 0)))

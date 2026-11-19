@@ -17,7 +17,8 @@ import type { Fabric } from './fabric'
  * type, and its head and upper legs stay on the middle layer where the next
  * row crosses them. Three layers are enough for any knit and purl fabric.
  */
-export interface Span { d: string; z: -1 | 0 | 1; row: number; col: number }
+/** `part` runs 0-7 left to right: sinker, lower leg, upper leg, head, head, upper leg, lower leg, sinker. */
+export interface Span { d: string; z: -1 | 0 | 1; row: number; col: number; part: number }
 
 export const CELL = { w: 26, h: 21 }
 
@@ -27,16 +28,21 @@ const HALF: [number, number][] = [[0.5, 0.16], [0.17, -0.36], [0.2, -0.78], [0.3
 
 type P = [number, number]
 
+export const PAD = 10
+
+/** Baseline of a row in drawing units, for a drawing `height` tall. */
+export const rowBase = (height: number, row: number) => height - PAD - CELL.h * 0.35 - row * CELL.h
+
 export function yarnSpans(fabric: Fabric): { spans: Span[]; width: number; height: number } {
   const supported = fabric.rows.every((r) => r.every((s) => s === 'k' || s === 'p'))
   if (!supported) throw new Error('The yarn-path view draws knit and purl only so far. Use the chart view for shaping stitches.')
   const cols = Math.max(...fabric.rows.map((r) => r.length))
   const { w, h } = CELL
-  const pad = 10
+  const pad = PAD
   const height = (fabric.rows.length + 1) * h + pad * 2
   const spans: Span[] = []
   fabric.rows.forEach((row, r) => {
-    const y0 = height - pad - h * 0.35 - r * h
+    const y0 = rowBase(height, r)
     const pts: P[] = []
     row.forEach((_, c) => {
       const cx = pad + c * w + w / 2
@@ -49,7 +55,7 @@ export function yarnSpans(fabric: Fabric): { spans: Span[]; width: number; heigh
       const part = i % 8 // 0 sinker, 1 lower leg, 2 upper leg, 3-4 head, 5 upper, 6 lower, 7 sinker
       const front = row[col] === 'k' ? 1 : -1
       const z = part === 1 || part === 6 ? front : part === 0 || part === 7 ? -front : 0
-      spans.push({ d: bezier(pts, i), z: z as Span['z'], row: r, col })
+      spans.push({ d: bezier(pts, i), z: z as Span['z'], row: r, col, part })
     }
   })
   return { spans, width: cols * w + pad * 2, height }
