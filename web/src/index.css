@@ -149,3 +149,68 @@ figure svg{overflow:hidden}
 .chart-dir{fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .found-ring{fill:none;stroke:var(--hot);stroke-width:3.5;stroke-dasharray:6 5}
 .nav2.even{grid-template-columns:1fr 1fr}
+
+/* follow-along */
+.follow{gap:14px}
+.step-now{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:start;min-height:5.2em}
+.step-no{width:34px;height:34px;border-radius:50%;background:var(--wool);color:var(--on-wool);display:grid;place-items:center;font-family:"DM Mono",monospace;font-weight:500}
+.step-now p{font-size:1.06rem}
+.more summary,.troubles summary,.howto summary{cursor:pointer;font-weight:500;padding:6px 0}
+.more .steps{margin-top:8px}
+.troubles{display:flex;flex-direction:column}
+.troubles details{border-top:1px solid var(--line);padding:6px 0}
+.troubles p{color:var(--muted);padding:2px 0 6px}
+.callout.drill{background:var(--surface2);border-left:4px solid var(--sun)}
+.goal{font-size:.95rem;margin-top:2px}
+.group.then{margin-top:10px}
+.path>li.done .node{background:var(--teal);border-color:var(--teal);color:var(--surface)}
+.card.next.alt{border-color:var(--teal)}
+
+/* row card */
+.rowcard h2{font-size:1.5rem}
+.rowcard .of{font-family:"DM Sans",system-ui,sans-serif;font-size:.9rem;font-weight:400;color:var(--muted)}
+.pill.rs{background:var(--wool-soft)}.pill.ws{background:var(--teal-soft)}
+.say{font-size:1.08rem}
+.tiles{display:flex;flex-wrap:wrap;gap:6px;align-items:flex-end}
+.tile{display:inline-flex;flex-direction:column;align-items:center;gap:2px;font-family:"DM Mono",monospace;font-size:.7rem}
+.tile svg{width:38px;height:38px;border-radius:9px;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.tile.a svg{background:var(--wool-soft);stroke:var(--ya)}
+.tile.b svg{background:var(--teal-soft);stroke:var(--yb)}
+.tile.c svg{background:var(--surface2);stroke:var(--ink)}
+.tile b{font-weight:500}
+.repeat{display:inline-flex;gap:6px;align-items:flex-end;border:2px dashed var(--line);border-radius:14px;padding:6px 8px}
+.repeat em{font-style:normal;font-family:"DM Mono",monospace;font-size:1rem;align-self:center;padding-left:2px}
+.close-up{max-width:340px}
+.rowbar{display:flex;gap:8px;align-items:center}
+.btn.grow{flex:1;font-size:1.05rem;min-height:52px}
+.howto{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:6px 14px}
+.howto[open]{padding-bottom:14px;display:flex;flex-direction:column;gap:12px}
+.kit li{display:grid;grid-template-columns:36px minmax(0,1fr) auto;align-items:center}
+.kit-icon{width:32px;height:32px;fill:none;stroke:var(--ink);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+
+/* drawn pictures */
+.pic{max-height:260px}
+.pic-needle{fill:none;stroke:var(--ink);stroke-width:5;stroke-linecap:round}
+.pic-needle.thin{stroke-width:3.5}
+.pic-needle.working{stroke:var(--hot)}
+.pic-knob{fill:var(--ink)}
+.pic-loop{fill:none;stroke:var(--ya);stroke-width:3}
+circle.pic-loop{fill:var(--ya);stroke:none}
+.pic-loop.first{stroke:var(--yb)}
+.pic-braid{stroke:var(--ya);stroke-width:4;stroke-dasharray:9 4;fill:none}
+.pic-yarn{fill:none;stroke:var(--ya);stroke-width:3;stroke-linecap:round}
+.pic-marker{fill:var(--surface2);stroke:var(--hot);stroke-width:4}
+.pic-arrow{fill:none;stroke:var(--muted);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.pic-band{fill:var(--surface);stroke:var(--muted);stroke-width:1.5}
+.pic-square{fill:none;stroke:var(--ink);stroke-width:1.5}
+.pic-num{fill:var(--wool)}
+.pic-numtext{fill:var(--on-wool);font:500 10px "DM Mono",monospace}
+.pic-numtext.dark{fill:#2A1E00}
+.pic-ruler{fill:var(--hot)}
+.pic-guide{stroke:var(--muted);stroke-width:1;stroke-dasharray:3 3;fill:none}
+.pic-stitches{fill:none;stroke:var(--ya);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.pic-seam{stroke:var(--ya);stroke-width:5;stroke-linecap:round;stroke-dasharray:2 7}
+.pic-gap{stroke:var(--hot);stroke-width:5;stroke-linecap:round}
+.pic-big{fill:var(--ink);font:700 17px "Bricolage Grotesque",system-ui,sans-serif}
+.pic-note{fill:var(--muted);font:500 9.5px "DM Sans",system-ui,sans-serif}
+.pic-note.strong{fill:var(--ink);font-weight:700}

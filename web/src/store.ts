@@ -10,9 +10,11 @@ export interface State {
   lessons: Record<string, boolean>
   projects: Record<string, { step: number; count: number }>
   quiz: { right: number; asked: number }
+  /** How many times each project has been finished. */
+  made: Record<string, number>
 }
 
-export const INITIAL: State = { yarn: 'worsted', gauge: 18, headCm: 56, handCm: 19, lessons: {}, projects: {}, quiz: { right: 0, asked: 0 } }
+export const INITIAL: State = { yarn: 'worsted', gauge: 18, headCm: 56, handCm: 19, lessons: {}, projects: {}, quiz: { right: 0, asked: 0 }, made: {} }
 const KEY = 'loopwise.v1'
 
 /** Progress lives on this device only. Storage can be unavailable, and the app must still work. */

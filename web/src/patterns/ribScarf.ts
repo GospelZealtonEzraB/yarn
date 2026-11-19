@@ -23,14 +23,14 @@ export function ribScarfPattern(s: Settings): Pattern {
       { name: 'Tape measure', qty: '1' },
     ],
     steps: [
-      { title: 'Cast on', recipe: `CO ${castOn}`, text: `Cast on ${castOn} stitches with the long-tail cast-on.`,
+      { title: 'Cast on', picture: 'caston', help: ['caston'], recipe: `CO ${castOn}`, text: `Cast on ${castOn} stitches with the long-tail cast-on.`,
         tip: 'The count is a multiple of 4 plus 2, so the row starts and ends with knit 2.' },
-      { title: 'Knit the ribbing', recipe: `RS: ${rs} · WS: ${ws}`, rows: Array.from({ length: pairs * 2 }, (_, i) => (i % 2 ? ws : rs)), until: `the scarf measures ${LENGTH_CM} cm`,
+      { title: 'Knit the ribbing', help: ['rib', 'read'], recipe: `RS: ${rs} · WS: ${ws}`, rows: Array.from({ length: pairs * 2 }, (_, i) => (i % 2 ? ws : rs)), until: `the scarf measures ${LENGTH_CM} cm`,
         text: 'Right-side rows: knit 2, purl 2 across, ending with knit 2. Wrong-side rows: purl 2, knit 2 across, ending with purl 2. Once the pattern is set you can stop counting and read the stitches: knit the Vs, purl the bumps.',
         tip: 'Move the yarn between the needles each time you switch, to the front before purls and to the back before knits.' },
-      { title: 'Bind off in pattern', recipe: 'BO in rib', text: 'Bind off as usual, but knit the knit stitches and purl the purl stitches as you go. That keeps the edge as stretchy as the scarf.',
+      { title: 'Bind off in pattern', picture: 'bindoff', help: ['bindoff'], recipe: 'BO in rib', text: 'Bind off as usual, but knit the knit stitches and purl the purl stitches as you go. That keeps the edge as stretchy as the scarf.',
         tip: 'Finish on a wrong-side row so the bind-off chain sits on the right side.' },
-      { title: 'Weave in the ends', recipe: 'Finish', text: 'Run each tail up a knit column on the wrong side for 5 cm, then back down the next column for 2 cm. Trim close.' },
+      { title: 'Weave in the ends', picture: 'done', help: ['weave'], recipe: 'Finish', text: 'Run each tail up a knit column on the wrong side for 5 cm, then back down the next column for 2 cm. Trim close.' },
     ],
   }
 }

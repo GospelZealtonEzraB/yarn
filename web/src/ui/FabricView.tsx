@@ -24,16 +24,18 @@ export function ChartView({ fabric }: { fabric: Fabric }) {
 }
 
 /** The yarn path with no controls, for games and thumbnails. */
-export function YarnSwatch({ fabric }: { fabric: Fabric }) {
+export function YarnSwatch({ fabric, focusRow }: { fabric: Fabric; focusRow?: number }) {
   const { spans, width, height } = useMemo(() => yarnSpans(fabric), [fabric])
+  // With a focus row, that row is pink and the rest grey. Otherwise rows alternate so each strand can be followed.
+  const tone = (row: number) => (focusRow === undefined ? (row % 2 ? 'b' : 'a') : row === focusRow ? 'a' : 'c')
   return (
     <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Knitted swatch, right side facing">
       {[...new Set(spans.map((s) => s.z))].sort((a, b) => a - b).map((z) => {
         const layer = spans.filter((s) => s.z === z)
         return (
           <g key={z} fill="none">
-            {layer.map((s, i) => <path key={`e${i}`} d={s.d} className={`edge ${s.row % 2 ? 'b' : 'a'}`} />)}
-            {layer.map((s, i) => <path key={`y${i}`} d={s.d} className={`strand ${s.row % 2 ? 'b' : 'a'}`} />)}
+            {layer.map((s, i) => <path key={`e${i}`} d={s.d} className={`edge ${tone(s.row)}`} />)}
+            {layer.map((s, i) => <path key={`y${i}`} d={s.d} className={`strand ${tone(s.row)}`} />)}
           </g>
         )
       })}

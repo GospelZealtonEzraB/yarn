@@ -17,7 +17,8 @@ export function Projects({ open }: { open: (id: string) => void }) {
               <svg viewBox="0 0 100 70" aria-hidden="true"><path className="sil" d={p.outline} /></svg>
               <b>{p.name}</b>
               <span className="sub">{p.blurb}</span>
-              <span className={`tag ${p.build ? 'ok' : ''}`}>{p.build ? (started ? 'Continue' : `Stage ${p.stage} · ${p.hours}`) : `Stage ${p.stage} · pattern being written`}</span>
+              <span className={`tag ${p.build ? 'ok' : ''}`}>{p.build ? (started?.step ? 'On your needles · continue' : `Stage ${p.stage} · ${p.hours}`) : `Stage ${p.stage} · pattern being written`}</span>
+              {state.made[p.id] ? <span className="pill">Made {state.made[p.id]}×</span> : null}
             </button>
           )
         })}

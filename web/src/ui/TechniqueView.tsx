@@ -22,9 +22,11 @@ const flipWords = (t: string) => t.replace(/\b(left|right)\b/g, (w) => (w === 'l
 
 const ease = (t: number) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2)
 
-export function TechniqueView({ technique }: { technique: Diagram }) {
+/** `at` lets a lesson drive the diagram one step at a time; without it the diagram has its own controls. */
+export function TechniqueView({ technique, at }: { technique: Diagram; at?: number }) {
   const frames = technique.steps
-  const [step, setStep] = useState(0)
+  const [own, setStep] = useState(0)
+  const step = Math.min(at ?? own, frames.length - 1)
   const [pos, setPos] = useState(0) // animated position, in frames
   const [playing, setPlaying] = useState(false)
   const [mirror, setMirror] = useState(false)
@@ -92,16 +94,20 @@ export function TechniqueView({ technique }: { technique: Diagram }) {
           {shown.arrow && <span><i className="swatch hot" />What moves in this step</span>}
         </div>
       </figure>
+      {at === undefined ? (
       <div className="inspect" aria-live="polite">
-        <b>{step + 1} of {frames.length} · {shown.title}</b>
-        <p>{shown.text}</p>
-        <div className="group">
-          <button className="btn" onClick={() => { if (!playing && step === frames.length - 1) setStep(0); setPlaying(!playing) }}>{playing ? 'Pause' : 'Play'}</button>
-          <button className="chip" disabled={step === 0} onClick={() => { setPlaying(false); setStep(step - 1) }}>Step back</button>
-          <button className="chip" disabled={step === frames.length - 1} onClick={() => { setPlaying(false); setStep(step + 1) }}>Step forward</button>
-          <button className="chip" aria-pressed={mirror} onClick={() => setMirror(!mirror)}>Left-handed mirror</button>
+          <b>{step + 1} of {frames.length} · {shown.title}</b>
+          <p>{shown.text}</p>
+          <div className="group">
+            <button className="btn" onClick={() => { if (!playing && step === frames.length - 1) setStep(0); setPlaying(!playing) }}>{playing ? 'Pause' : 'Play'}</button>
+            <button className="chip" disabled={step === 0} onClick={() => { setPlaying(false); setStep(step - 1) }}>Step back</button>
+            <button className="chip" disabled={step === frames.length - 1} onClick={() => { setPlaying(false); setStep(step + 1) }}>Step forward</button>
+            <button className="chip" aria-pressed={mirror} onClick={() => setMirror(!mirror)}>Left-handed mirror</button>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="group"><button className="chip" aria-pressed={mirror} onClick={() => setMirror(!mirror)}>Left-handed mirror</button></div>
+      )}
     </div>
   )
 }

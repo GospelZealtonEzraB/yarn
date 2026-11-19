@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { parseRow, produced } from './recipe'
+import { inWords, parseRow, produced, runs } from './recipe'
 import { isWrongSideRow, knit } from './fabric'
 import { yarnSpans } from './yarnPath'
 import { between, BINDOFF, blend, DIAGRAMS, KNIT, PURL, Z } from './technique'
 import { beanie, crownRecipes } from '../patterns/beanie'
 import { needleFor, PROJECTS } from '../patterns/catalog'
 import { LESSONS, STAGES } from '../content/lessons'
+import { EXTRAS } from '../content/extras'
 import { withMistake, workingOrder } from './games'
 
 const look = (rows: string[][]) => rows.map((r) => r.join(''))
@@ -270,5 +271,46 @@ describe('games', () => {
     const diff = bad.rows.flatMap((r, i) => r.map((s, j) => (s === clean.rows[i][j] ? 0 : 1) as number)).reduce((a, b) => a + b, 0)
     expect(diff).toBe(1)
     expect(clean.rows[3][5]).not.toBe(bad.rows[3][5])
+  })
+})
+
+describe('follow-along text', () => {
+  it('turns shorthand into plain sentences', () => {
+    expect(inWords('K1')).toBe('Knit every stitch.')
+    expect(inWords('P1')).toBe('Purl every stitch.')
+    expect(inWords('K2, P2')).toBe('Knit 2 and purl 2, and repeat to the end.')
+    expect(inWords('*K9, k2tog; rep from *')).toBe('Repeat knit 9 and knit 2 together across.')
+    expect(inWords('*k2tog; rep from *')).toBe('Repeat knit 2 together across.')
+    expect(inWords('*K2, P2; rep from *, K2')).toBe('Repeat knit 2 and purl 2 across, then finish with knit 2.')
+  })
+  it('row tiles collapse runs of knit or purl but keep each decrease separate', () => {
+    expect(runs(parseRow('*K9, k2tog; rep from *', 22))).toEqual([{ type: 'k', count: 9 }, { type: 'k2tog', count: 1 }, { type: 'k', count: 9 }, { type: 'k2tog', count: 1 }])
+    expect(runs(['k', 'k', 'p', 'p'])).toEqual([{ type: 'k', count: 2 }, { type: 'p', count: 2 }])
+    expect(runs(['k2tog', 'k2tog'])).toHaveLength(2)
+  })
+  it('every row of every shipped pattern can be put into words', () => {
+    const settings = { gauge: 18, headCm: 56, handCm: 19, yarn: 'Test', needle: '5 mm' }
+    for (const p of PROJECTS) if (p.build) for (const step of p.build(settings).steps) for (const row of step.rows ?? []) {
+      expect(inWords(row)).toMatch(/^[A-Z].*\.$/)
+    }
+  })
+  it('every lesson has a drill and troubleshooting, and nothing is orphaned', () => {
+    for (const l of LESSONS) {
+      expect(EXTRAS[l.id], l.id).toBeDefined()
+      expect(EXTRAS[l.id].troubles.length).toBeGreaterThanOrEqual(2)
+    }
+    expect(Object.keys(EXTRAS).sort()).toEqual(LESSONS.map((l) => l.id).sort())
+  })
+  it('projects only point at lessons and stages that exist', () => {
+    const ids = new Set(LESSONS.map((l) => l.id))
+    const settings = { gauge: 18, headCm: 56, handCm: 19, yarn: 'Test', needle: '5 mm' }
+    for (const p of PROJECTS) {
+      for (const n of p.needs ?? []) expect(ids.has(n), `${p.id} needs ${n}`).toBe(true)
+      if (p.build) for (const step of p.build(settings).steps) for (const h of step.help ?? []) expect(ids.has(h), `${p.id} ${step.title}`).toBe(true)
+    }
+    for (const st of STAGES) for (const id of st.projects) expect(PROJECTS.some((p) => p.id === id && p.build)).toBe(true)
+  })
+  it('a project never needs a lesson from a later stage than its own', () => {
+    for (const p of PROJECTS) for (const n of p.needs ?? []) expect(LESSONS.find((l) => l.id === n)!.stage, `${p.id} needs ${n}`).toBeLessThanOrEqual(p.stage)
   })
 })

@@ -14,24 +14,28 @@ export interface Lesson {
   /** Fabric the engine draws so the knitter can compare with their own. */
   /** Animated needle-and-yarn diagram of the movement. */
   technique?: 'knit' | 'purl' | 'bindoff'
+  /** Which diagram frame goes with each step, when the lesson has a diagram. */
+  frames?: number[]
+  /** A drawn picture for lessons without a movement diagram. */
+  picture?: 'ballband' | 'gauge' | 'caston' | 'ring' | 'dpn'
   see?: { castOn: number; rows: string[]; construction: Construction; caption: string }
 }
 
-export interface Stage { n: number; name: string; skills: string; makes: string }
+export interface Stage { n: number; name: string; /** What the learner can do by the end. */ goal: string; skills: string; makes: string; /** Projects in the app that this stage leads to. */ projects: string[] }
 
 export const STAGES: Stage[] = [
-  { n: 1, name: 'First loops', skills: 'Slip knot, long-tail cast-on, knit stitch, bind off, weaving in ends', makes: 'Garter stitch scarf' },
-  { n: 2, name: 'Knit and purl', skills: 'Purl stitch, stockinette, ribbing, reading your stitches, gauge swatches, fixing a dropped stitch', makes: 'Ribbed scarf, fingerless mitts' },
-  { n: 3, name: 'In the round', skills: 'Circular needles, joining, stitch markers, k2tog and ssk decreases, double-pointed needles', makes: 'Ribbed beanie' },
-  { n: 4, name: 'Shaping', skills: 'M1L and M1R increases, thumb gussets, picking up stitches, holding stitches on waste yarn', makes: 'Mitts in the round, mittens' },
-  { n: 5, name: 'Fingers and texture', skills: 'Glove fingers, cables, simple lace, lifelines, fixing mistakes rows later', makes: 'Gloves, cabled headband' },
-  { n: 6, name: 'Colour and garments', skills: 'Stripes, Fair Isle, heel turns, raglan shaping, seaming, blocking, altering patterns', makes: 'Socks, top-down sweater' },
+  { n: 1, name: 'First loops', goal: 'Get loops onto a needle, knit them into fabric, and take them off safely.', skills: 'Slip knot, long-tail cast-on, knit stitch, bind off, weaving in ends', makes: 'Garter stitch scarf', projects: ['scarf'] },
+  { n: 2, name: 'Knit and purl', goal: 'Mix knits and purls on purpose, and read what you have made.', skills: 'Purl stitch, stockinette, ribbing, reading your stitches, gauge swatches, fixing a dropped stitch', makes: 'Ribbed scarf, fingerless mitts', projects: ['ribscarf', 'mitts'] },
+  { n: 3, name: 'In the round', goal: 'Knit a seamless tube and shape it.', skills: 'Circular needles, joining, stitch markers, k2tog and ssk decreases, double-pointed needles', makes: 'Ribbed beanie', projects: ['beanie'] },
+  { n: 4, name: 'Shaping', goal: 'Add stitches where you want them and knit a thumb.', skills: 'M1L and M1R increases, thumb gussets, picking up stitches, holding stitches on waste yarn', makes: 'Mitts in the round, mittens', projects: [] },
+  { n: 5, name: 'Fingers and texture', goal: 'Work small tubes, cross stitches for cables, and repair mistakes rows later.', skills: 'Glove fingers, cables, simple lace, lifelines, fixing mistakes rows later', makes: 'Gloves, cabled headband', projects: [] },
+  { n: 6, name: 'Colour and garments', goal: 'Knit with several colours and build garments that fit.', skills: 'Stripes, Fair Isle, heel turns, raglan shaping, seaming, blocking, altering patterns', makes: 'Socks, top-down sweater', projects: [] },
 ]
 
 const rep = (r: string, n: number) => Array<string>(n).fill(r)
 
 export const LESSONS: Lesson[] = [
-  { id: 'kit', stage: 1, title: 'Read your ball band', minutes: 5,
+  { id: 'kit', picture: 'ballband', stage: 1, title: 'Read your ball band', minutes: 5,
     intro: 'The paper band around your yarn tells you almost everything you need to start.',
     steps: [
       'Find the yarn weight. It is a word such as DK, worsted or chunky, or a number from 0 to 7. Thicker yarn means bigger stitches and faster projects.',
@@ -52,7 +56,7 @@ export const LESSONS: Lesson[] = [
     ],
     check: 'The loop slides along the needle easily and tightens when you pull the yarn.',
     watch: 'If it is a hard knot that will not slide, undo it and start again. A slip knot always comes undone with one pull.' },
-  { id: 'caston', stage: 1, title: 'Long-tail cast-on', minutes: 15,
+  { id: 'caston', picture: 'caston', stage: 1, title: 'Long-tail cast-on', minutes: 15,
     intro: 'Casting on puts the first row of loops on the needle. The long-tail method is stretchy, neat and good for almost everything.',
     steps: [
       'Measure a tail about three times the width of what you are making, plus 15 cm. Make a slip knot there and put it on the needle in your right hand. It counts as your first stitch.',
@@ -64,7 +68,7 @@ export const LESSONS: Lesson[] = [
     ],
     check: 'A row of even loops on the needle with a neat braid along the bottom edge. Count them twice.',
     watch: 'Casting on tightly makes the first row a fight. Leave a little space between stitches, about the width of the yarn. This is the one technique where watching hands helps most, so pair these steps with a video the first time.' },
-  { id: 'knit', stage: 1, title: 'The knit stitch', minutes: 20, technique: 'knit',
+  { id: 'knit', frames: [0, 1, 2, 3, 4, 4], stage: 1, title: 'The knit stitch', minutes: 20, technique: 'knit',
     intro: 'This is the stitch everything else is built from. Knitters teach it with a rhyme: in through the front door, once around the back, peek through the window, off jumps Jack.',
     steps: [
       'Hold the needle with the stitches in your left hand and the empty needle in your right. The working yarn hangs at the back, away from you.',
@@ -77,7 +81,7 @@ export const LESSONS: Lesson[] = [
     check: 'Knit every row and you get garter stitch: bumpy ridges on both sides.',
     watch: 'At the start of a row, do not pull the yarn up and over the needle. It makes the first stitch look like two, and your scarf gets wider.',
     see: { castOn: 12, rows: rep('K1', 8), construction: 'flat', caption: 'Garter stitch. Tap a stitch to see how each loop passes through the one below.' } },
-  { id: 'bindoff', stage: 1, title: 'Bind off', minutes: 10, technique: 'bindoff',
+  { id: 'bindoff', frames: [0, 1, 2, 3, 3], stage: 1, title: 'Bind off', minutes: 10, technique: 'bindoff',
     intro: 'Binding off closes the live stitches so the fabric cannot unravel.',
     steps: [
       'Knit 2 stitches.',
@@ -99,7 +103,7 @@ export const LESSONS: Lesson[] = [
     check: 'You cannot see the tail from the right side, and the fabric still stretches.',
     watch: 'Never knot the ends and cut them. Knots come undone and poke through.' },
 
-  { id: 'purl', stage: 2, title: 'The purl stitch', minutes: 20, technique: 'purl',
+  { id: 'purl', frames: [0, 1, 2, 3, 4], stage: 2, title: 'The purl stitch', minutes: 20, technique: 'purl',
     intro: 'A purl is a knit stitch made from the other side. Together they make every texture in knitting.',
     steps: [
       'Hold the needles as for knitting, but bring the working yarn to the front, toward you.',
@@ -145,7 +149,7 @@ export const LESSONS: Lesson[] = [
     check: 'You can put your knitting down mid-row and work out what comes next when you pick it up.',
     watch: 'The loop sitting on the needle is not finished yet. Read the stitch underneath it.',
     see: { castOn: 12, rows: rep('K1, P1', 8), construction: 'flat', caption: 'Seed stitch: knits and purls alternate in both directions. Try naming a few before tapping them.' } },
-  { id: 'gauge', stage: 2, title: 'Knit a gauge swatch', minutes: 30,
+  { id: 'gauge', picture: 'gauge', stage: 2, title: 'Knit a gauge swatch', minutes: 30,
     intro: 'Gauge is how many stitches fit in 10 cm with your yarn, your needles and your hands. It decides whether a hat fits.',
     steps: [
       'Cast on enough stitches for about 15 cm, using the needle size on the ball band.',
@@ -168,7 +172,7 @@ export const LESSONS: Lesson[] = [
     check: 'The column of V shapes is complete again with no horizontal bars across it.',
     watch: 'To undo a few stitches instead, put the left needle into the stitch below the one on the right needle, slide the right needle out and pull the yarn. Knitters call it tinking.' },
 
-  { id: 'round', stage: 3, title: 'Join in the round', minutes: 20,
+  { id: 'round', picture: 'ring', stage: 3, title: 'Join in the round', minutes: 20,
     intro: 'A circular needle lets you knit a tube with no seam. You go round and round instead of back and forth, and the right side always faces you.',
     steps: [
       'Cast on onto a circular needle that is shorter than the tube you are making. For an adult hat that is a 40 cm needle.',
@@ -201,7 +205,7 @@ export const LESSONS: Lesson[] = [
     check: 'One stitch fewer, and the right of the two old stitches lies on top, slanting left.',
     watch: 'Slip the stitches one at a time and as if to knit. Slipping them as if to purl, or both at once, gives a twisted, bulkier decrease.',
     see: { castOn: 12, rows: ['K1', 'K1', 'K1', '*K2, ssk; rep from *', 'K1', 'K1'], construction: 'round', caption: 'The same fabric with left-leaning decreases. Compare which loop is on top.' } },
-  { id: 'dpn', stage: 3, title: 'Double-pointed needles', minutes: 20,
+  { id: 'dpn', picture: 'dpn', stage: 3, title: 'Double-pointed needles', minutes: 20,
     intro: 'As a hat crown shrinks, the stitches no longer reach around a circular needle. Double-pointed needles hold a small tube on three or four short needles.',
     steps: [
       'Take one double-pointed needle in your right hand in place of the right tip of the circular. Knit about a third of the stitches onto it.',

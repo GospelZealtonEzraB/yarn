@@ -8,6 +8,10 @@ export interface Step {
   /** Knitter's shorthand shown under the step. */
   recipe: string
   tip?: string
+  /** A drawn picture for steps that are not row-by-row knitting. */
+  picture?: 'caston' | 'ring' | 'bindoff' | 'seam' | 'done'
+  /** Lessons that teach what this step needs. */
+  help?: string[]
   /** One recipe per row or round in this step. The engine works these to draw the piece and to prove the counts. */
   rows?: string[]
   /** What tells the knitter to stop, since row counts are estimates. */

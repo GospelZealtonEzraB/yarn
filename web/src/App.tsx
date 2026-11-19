@@ -28,8 +28,8 @@ export default function App() {
   return (
     <StoreContext.Provider value={{ state, set }}>
       <main>
-        {tab === 'learn' && (lesson ? <Lesson id={lesson} back={() => setLesson(null)} open={setLesson} /> : <Learn open={setLesson} />)}
-        {tab === 'make' && (project ? <Builder id={project} back={() => setProject(null)} /> : <Projects open={setProject} />)}
+        {tab === 'learn' && (lesson ? <Lesson key={lesson} id={lesson} back={() => setLesson(null)} open={setLesson} /> : <Learn open={setLesson} openProject={(id) => { setTab('make'); setProject(id) }} />)}
+        {tab === 'make' && (project ? <Builder id={project} back={() => setProject(null)} openLesson={(id) => { setTab('learn'); setLesson(id) }} /> : <Projects open={setProject} />)}
         {tab === 'practice' && <Practice />}
         {tab === 'lab' && <Lab />}
         {tab === 'coach' && <Coach />}

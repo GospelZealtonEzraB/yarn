@@ -8,8 +8,8 @@ that produces the instructions.
 
 | Area | What works |
 |---|---|
-| Learn | Yarn setup (weight, gauge, head size). Six-stage path. 16 written lessons covering stages 1 to 3, each with steps, a success check, a common mistake, and where possible an interactive drawing of the fabric. |
-| Make | Garter scarf, ribbed scarf, fingerless mitts (knitted flat and seamed) and ribbed beanie. Kit list, numbered steps, row counter, and a stitch-for-stitch picture of the piece that grows as you count. All resize to any gauge from 10 to 34 stitches per 10 cm. |
+| Learn | Yarn setup (weight, gauge, head size). Six-stage path. 16 written lessons covering stages 1 to 3, each a one-step-at-a-time follow-along led by a picture: a movement diagram synced to the step, or a drawn picture of the result. Each has a success check, a drill to do with yarn, and troubleshooting. |
+| Make | Garter scarf, ribbed scarf, fingerless mitts (knitted flat and seamed) and ribbed beanie. Each project opens with the finished piece, an illustrated kit list and the lessons it needs. Each row shows stitch tiles, a plain sentence, a close-up of the fabric and the stitch count, and each step links to its how-to. All resize to any gauge from 10 to 34 stitches per 10 cm. |
 | Practice | Four games: name that swatch, find the wrong stitch, chart reader (including wrong-side rows), and flashcards for 18 pattern abbreviations. |
 | Lab | Type any row of shorthand and see the yarn path and chart. Colour by row, stitch or depth, hide layers, zoom to one stitch, trace the yarn. |
 | Progress | Saved on the device. No account, no server. |
