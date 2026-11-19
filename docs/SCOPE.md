@@ -32,7 +32,7 @@ per stitch, so ribbing shows as real columns.
 | Level | What it is | Needs | Status |
 |---|---|---|---|
 | 1. Solid of revolution | Hat or mitt as a turned shape with progress colours | three.js, already in the app | Built |
-| 2. Shape as worn | The hat stretched over a head form, a scarf draped | A head and hand form to wrap the fabric onto, plus a simple stretch model | Not built |
+| 2. Shape as worn | The hat laid over a head at its knitted length, with progress | A head form. A plain built-in head is used until a detailed model is added at `web/public/models/head.glb` | Hat built. Mitts on a hand not built |
 | 3. Stitch-level surface | Every loop as raised yarn | A normal or displacement texture generated from the stitch chart | Not built |
 | 4. Non-tube garments | Gloves, socks, sweaters | A mesh assembled from several tubes with joins (thumb, heel, sleeves) | Not built |
 | 5. Hands and needles in 3D | Animated technique views | Rigged 3D hand models and motion data from a real knitter | Not built, needs outside assets |
@@ -57,7 +57,7 @@ about 75 kB to about 220 kB compressed.
   increases appear in the chart only.
 - **Photo coach is a placeholder screen.**
 - **Row gauge is estimated** from stitch gauge. Steps say to trust the tape measure.
-- **The 3D view shows the item relaxed, not worn.** A hat looks like a flat-topped cylinder until it is stretched over a head form.
+- **The Worn view uses a plain egg-shaped head** with no face or ears, so the hat looks like it covers most of the head. A detailed head model would fix the look. The mitts have no worn view yet.
 - **Scarves have no 3D view.** They are flat, so the to-scale flat picture is the honest one.
 
 ## Version 2: next

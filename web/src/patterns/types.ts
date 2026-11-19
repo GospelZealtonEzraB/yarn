@@ -28,6 +28,8 @@ export interface Pattern {
   steps: Step[]
   /** True when the finished item is seen doubled: a tube laid flat, or a piece folded in half. */
   halved: boolean
+  /** The body form the finished item is worn on, when the app can show it worn. */
+  wornOn?: 'head'
   /** Features to point out on the picture of the finished item, measured from the cast-on edge. */
   marks?: { fromCm: number; toCm: number; label: string }[]
 }

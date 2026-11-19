@@ -17,7 +17,7 @@ const CLOSE_UP = 8 // stitches shown in the close-up
 export function Builder({ id, back, openLesson }: { id: string; back: () => void; openLesson: (id: string) => void }) {
   const { state, set } = useStore()
   const project = PROJECTS.find((p) => p.id === id)!
-  const [solid, setSolid] = useState(false)
+  const [view, setView] = useState<'flat' | '3d' | 'worn'>('flat')
   const built = useMemo(() => {
     try {
       const pattern = project.build!(settingsOf(state))
@@ -68,10 +68,13 @@ export function Builder({ id, back, openLesson }: { id: string; back: () => void
 
   // Only tubes have a meaningful solid shape: knitted in the round, or folded and seamed into a tube.
   const tube = pattern.halved
+  const solid = view !== 'flat'
+  const worn = view === 'worn' && pattern.wornOn === 'head' ? state.headCm : undefined
   const view3d = tube && (
     <div className="seg view-toggle">
-      <button aria-pressed={!solid} onClick={() => setSolid(false)}>Flat</button>
-      <button aria-pressed={solid} onClick={() => setSolid(true)}>3D</button>
+      <button aria-pressed={view === 'flat'} onClick={() => setView('flat')}>Flat</button>
+      <button aria-pressed={view === '3d'} onClick={() => setView('3d')}>3D</button>
+      {pattern.wornOn && <button aria-pressed={view === 'worn'} onClick={() => setView('worn')}>Worn</button>}
     </div>
   )
   const needs = (project.needs ?? []).map((n) => LESSONS.find((l) => l.id === n)!)
@@ -90,7 +93,7 @@ export function Builder({ id, back, openLesson }: { id: string; back: () => void
         <>
           <figure className="hero">
             {view3d}
-            {solid && tube ? <Product3D product={shape} done={total} current={null} stitches={pattern.castOn} /> : <ProductView product={shape} done={total} current={null} unit={unit} />}
+            {solid && tube ? <Product3D product={shape} done={total} current={null} stitches={pattern.castOn} wornOnHead={worn} /> : <ProductView product={shape} done={total} current={null} unit={unit} />}
             <figcaption>What you are making · {pattern.fits}</figcaption>
           </figure>
           <section className="card">
@@ -115,7 +118,7 @@ export function Builder({ id, back, openLesson }: { id: string; back: () => void
           <figure className="hero">
             {view3d}
             {solid && tube
-              ? <Product3D product={shape} done={stepDone} current={rows.length ? stepNo - 1 : null} stitches={pattern.castOn} />
+              ? <Product3D product={shape} done={stepDone} current={rows.length ? stepNo - 1 : null} stitches={pattern.castOn} wornOnHead={worn} />
               : <ProductView product={shape} done={stepDone} current={rows.length ? stepNo - 1 : null} unit={unit} />}
             <figcaption>{percent}% knitted · filled = done · bright = this step · dashed = still to come</figcaption>
           </figure>

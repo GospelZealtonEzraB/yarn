@@ -58,6 +58,7 @@ export function beaniePattern(s: Settings): Pattern {
     castOn: b.castOn,
     construction: 'round',
     halved: true,
+    wornOn: 'head',
     fits: `Measures ${b.finishedCm} cm around and stretches to fit a ${s.headCm} cm head.`,
     kit: [
       { name: `${s.yarn} yarn`, qty: 'about 100 g' },

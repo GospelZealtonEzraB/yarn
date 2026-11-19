@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { inWords, parseRow, produced, runs } from './recipe'
 import { isWrongSideRow, knit } from './fabric'
 import { yarnSpans } from './yarnPath'
-import { product, profile, reached } from './product'
+import { headForm, product, profile, reached, wornProfile } from './product'
 import { between, BINDOFF, blend, DIAGRAMS, KNIT, PURL, Z } from './technique'
 import { beanie, crownRecipes } from '../patterns/beanie'
 import { needleFor, PROJECTS } from '../patterns/catalog'
@@ -338,6 +338,37 @@ describe('3D shape', () => {
     expect(rise(6, 12)).toBeCloseTo(1, 5)
     expect(rise(16, 21)).toBeLessThan(0.9)
     expect(p[p.length - 1][0]).toBeLessThan(p[0][0] / 4)
+  })
+})
+
+describe('hat as worn', () => {
+  const settings = { gauge: 18, headCm: 56, handCm: 19, yarn: 'Test', needle: '5 mm' }
+  const shape = (headCm = 56) => {
+    const pattern = PROJECTS.find((p) => p.id === 'beanie')!.build!({ ...settings, headCm })
+    return product(pattern, knit(pattern.castOn, pattern.steps.flatMap((s) => s.rows ?? []), 'round'), 18)
+  }
+  it('the head is as big around as its measurement', () => expect(headForm(56).a * 2 * Math.PI).toBeCloseTo(56, 6))
+  it('the worn hat keeps its knitted length: the path over the head is as long as the hat', () => {
+    const p = shape(), w = wornProfile(p, 56)
+    let along = 0
+    for (let i = 1; i < w.length; i++) along += Math.hypot(w[i][0] - w[i - 1][0], w[i][1] - w[i - 1][1])
+    expect(along).toBeGreaterThan(p.lengthCm * 0.93)
+    expect(along).toBeLessThan(p.lengthCm * 1.05)
+  })
+  it('it starts at the brim, ends at the crown, and sits on the head, never inside it', () => {
+    const p = shape(), w = wornProfile(p, 56), { a, b } = headForm(56)
+    expect(w[0][2]).toBeCloseTo(0, 1)
+    expect(w[w.length - 1][2]).toBe(p.lengthCm)
+    for (let i = 1; i < w.length; i++) expect(w[i][2]).toBeGreaterThanOrEqual(w[i - 1][2])
+    for (const [r, y] of w) if (y <= b) expect((r / a) ** 2 + (y / b) ** 2).toBeGreaterThanOrEqual(1 - 1e-6)
+  })
+  it('the brim is stretched: wider worn than relaxed, and no wider than the head', () => {
+    const p = shape(), brim = wornProfile(p, 56)[0][0], relaxed = profile(p)[0][0]
+    expect(brim).toBeGreaterThan(relaxed)
+    expect(brim).toBeLessThan(headForm(56).a + 0.5)
+  })
+  it('works across head sizes', () => {
+    for (const cm of [40, 48, 56, 62]) expect(wornProfile(shape(cm), cm).flat().every(Number.isFinite)).toBe(true)
   })
 })
 

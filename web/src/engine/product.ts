@@ -89,3 +89,45 @@ export function profile(p: Product, step = 0.25): [number, number, number][] {
   }
   return out
 }
+
+/**
+ * A plain head as an ellipsoid: `a` is its horizontal radius at the widest
+ * point, from the head measurement, and `b` its vertical radius. The centre is
+ * at the origin. This is also the surface a hat is draped on when a detailed
+ * head model is shown, so the two always agree.
+ */
+export function headForm(headCm: number): { a: number; b: number } {
+  const a = headCm / (2 * Math.PI)
+  return { a, b: a * 1.25 }
+}
+
+/**
+ * A hat as worn: its fabric laid on the head from the crown downward.
+ *
+ * Knitted fabric stretches easily around but hardly at all along its length,
+ * so the hat keeps its knitted length and takes the head's width. Starting at
+ * the top of the head, the profile follows the head's surface down until the
+ * hat's length is used up, which fixes how low the brim sits. Any length left
+ * after reaching the nape stands up as a small peak at the crown.
+ *
+ * Returns [radius, height, cm along the knitting] points, brim first.
+ */
+export function wornProfile(p: Product, headCm: number, gap = 0.35): [number, number, number][] {
+  const { a, b } = headForm(headCm)
+  const lowest = -0.62 // radians below the widest point: about the nape of the neck
+  const pts: [number, number, number][] = []
+  let used = 0, phi = Math.PI / 2
+  const d = 0.004
+  pts.push([gap, b + gap, p.lengthCm])
+  while (used < p.lengthCm && phi > lowest) {
+    phi -= d
+    used += Math.hypot(a * Math.sin(phi) * d, b * Math.cos(phi) * d)
+    pts.push([a * Math.cos(phi) + gap, b * Math.sin(phi), p.lengthCm - used])
+  }
+  const spare = p.lengthCm - used
+  // Brim first. If the hat is longer than the head allows, shift everything so the brim is at 0 and add the peak.
+  const out = pts.reverse().map(([r, y, u]): [number, number, number] => [r, y, Math.max(u - Math.max(spare, 0), 0)])
+  if (spare > 0.05) out.push([gap, b + gap + spare * 0.6, p.lengthCm])
+  else out[out.length - 1][2] = p.lengthCm
+  return out
+}
