@@ -34,7 +34,7 @@ figure svg{width:100%;height:auto;display:block}
 .edge.a{stroke:var(--ya-e)}.edge.b{stroke:var(--yb-e)}.edge.c{stroke:var(--yc-e)}.edge.hot{stroke:var(--hot-e)}
 .zoom{transition:transform .5s ease}
 .hit{fill:transparent;cursor:pointer}
-.hit:hover{stroke:var(--ink);stroke-width:.8;stroke-dasharray:2 2}
+@media (hover:hover){.hit:hover{fill:var(--ink);fill-opacity:.06}}
 @media (prefers-reduced-motion:reduce){.zoom,.strand{transition:none}}
 .explorer{display:flex;flex-direction:column;gap:12px}
 .toolbar{display:flex;flex-wrap:wrap;gap:10px 22px}
