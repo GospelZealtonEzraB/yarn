@@ -12,6 +12,8 @@ export interface Lesson {
   /** The mistake most beginners make here, and the fix. */
   watch: string
   /** Fabric the engine draws so the knitter can compare with their own. */
+  /** Animated needle-and-yarn diagram of the movement. */
+  technique?: 'knit' | 'purl'
   see?: { castOn: number; rows: string[]; construction: Construction; caption: string }
 }
 
@@ -62,7 +64,7 @@ export const LESSONS: Lesson[] = [
     ],
     check: 'A row of even loops on the needle with a neat braid along the bottom edge. Count them twice.',
     watch: 'Casting on tightly makes the first row a fight. Leave a little space between stitches, about the width of the yarn.' },
-  { id: 'knit', stage: 1, title: 'The knit stitch', minutes: 20,
+  { id: 'knit', stage: 1, title: 'The knit stitch', minutes: 20, technique: 'knit',
     intro: 'This is the stitch everything else is built from. Knitters teach it with a rhyme: in through the front door, once around the back, peek through the window, off jumps Jack.',
     steps: [
       'Hold the needle with the stitches in your left hand and the empty needle in your right. The working yarn hangs at the back, away from you.',
@@ -97,7 +99,7 @@ export const LESSONS: Lesson[] = [
     check: 'You cannot see the tail from the right side, and the fabric still stretches.',
     watch: 'Never knot the ends and cut them. Knots come undone and poke through.' },
 
-  { id: 'purl', stage: 2, title: 'The purl stitch', minutes: 20,
+  { id: 'purl', stage: 2, title: 'The purl stitch', minutes: 20, technique: 'purl',
     intro: 'A purl is a knit stitch made from the other side. Together they make every texture in knitting.',
     steps: [
       'Hold the needles as for knitting, but bring the working yarn to the front, toward you.',

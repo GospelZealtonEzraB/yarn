@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { parseRow, produced } from './recipe'
 import { isWrongSideRow, knit } from './fabric'
 import { yarnSpans } from './yarnPath'
+import { between, KNIT, PURL, Z } from './technique'
 import { beanie, crownRecipes } from '../patterns/beanie'
 import { needleFor, PROJECTS } from '../patterns/catalog'
 import { LESSONS, STAGES } from '../content/lessons'
@@ -108,5 +109,51 @@ describe('every project and lesson the app ships', () => {
     const draw = (id: string) => { const s = LESSONS.find((l) => l.id === id)!.see!; return knit(s.castOn, s.rows, s.construction).rows.map((r) => r[0]).join('') }
     expect(draw('stockinette')).toBe('kkkkkkkk')
     expect(draw('knit')).toBe('kpkpkpkp')
+  })
+})
+
+describe('technique diagrams', () => {
+  const both = [KNIT, PURL]
+  it('the working yarn is one unbroken strand in every keyframe', () => {
+    for (const t of both) for (const f of t.frames) for (let i = 1; i < 4; i++) {
+      expect(f.yarn[i].pts[0]).toEqual(f.yarn[i - 1].pts[f.yarn[i - 1].pts.length - 1])
+    }
+  })
+  it('keyframes have matching shapes, so every in-between scene is well formed', () => {
+    for (const t of both) for (let i = 1; i < t.frames.length; i++) {
+      const mid = between(t.frames[i - 1], t.frames[i], 0.5)
+      expect(mid.yarn.flatMap((s) => s.pts.flat()).every(Number.isFinite)).toBe(true)
+      expect(mid.old.front.pts).toHaveLength(5)
+      expect(mid.old.back.pts).toHaveLength(4)
+    }
+  })
+  it('knit keeps the yarn behind the work, purl keeps it in front', () => {
+    expect(KNIT.frames.every((f) => f.yarn[3].z === Z.behind)).toBe(true)
+    expect(PURL.frames.every((f) => f.yarn[3].z === Z.front)).toBe(true)
+  })
+  it('the wrap passes in front of the right needle but behind the left needle side it should', () => {
+    const k = KNIT.frames[2], p = PURL.frames[2]
+    expect(k.yarn[1].z).toBeGreaterThan(k.needleZ)
+    expect(k.yarn[1].z).toBeLessThan(Z.leftNeedle) // knit wrap runs between the needles
+    expect(p.yarn[1].z).toBeGreaterThan(p.needleZ) // purl wrap goes over the top of the right needle
+    expect(p.yarn[2].z).toBeLessThan(p.needleZ) // then down behind it
+    expect(p.yarn[2].z).toBeGreaterThan(Z.leftNeedle) // between the two needles
+  })
+  it('the needle enters behind the front leg of the stitch: knit ends behind the left needle, purl in front of it', () => {
+    expect(KNIT.frames[1].needleZ).toBeLessThan(Z.leftNeedle)
+    expect(PURL.frames[1].needleZ).toBeGreaterThan(Z.leftNeedle)
+    for (const t of both) expect(t.frames[1].needleZ).toBeLessThan(Z.frontLeg)
+  })
+  it('the finished stitch is mounted with its leading leg in front of the needle', () => {
+    for (const t of both) {
+      const f = t.frames[t.frames.length - 1]
+      expect(f.yarn[1].z).toBeGreaterThan(f.needleZ)
+      expect(f.yarn[2].z).toBeLessThan(f.needleZ)
+    }
+  })
+  it('a finished knit lies in front of the old stitch, a finished purl has the old stitch top in front', () => {
+    const k = KNIT.frames[4], p = PURL.frames[4]
+    expect(Math.max(k.old.back.z, k.old.front.z)).toBeLessThan(Math.min(...k.yarn.map((s) => s.z)))
+    expect(p.old.front.z).toBeGreaterThan(Math.max(...p.yarn.map((s) => s.z)))
   })
 })

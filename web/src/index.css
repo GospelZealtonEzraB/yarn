@@ -129,3 +129,10 @@ figure.chart{max-width:420px}
 figure svg{overflow:hidden}
 .chart-cell{fill:var(--surface);stroke:var(--muted);stroke-width:1}
 .chart-sym{fill:none;stroke:var(--ink);stroke-width:.07;stroke-linecap:round}
+.technique{display:flex;flex-direction:column;gap:12px}
+.t-needle{stroke:var(--ink);stroke-width:6;stroke-linecap:round}
+.t-yarn{stroke-width:3.6;stroke-linecap:round}
+.t-edge{stroke-width:5.4;stroke-linecap:butt}
+.t-yarn.work{stroke:var(--ya)}.t-edge.work{stroke:var(--ya-e)}
+.t-yarn.old{stroke:var(--yb)}.t-edge.old{stroke:var(--yb-e)}
+.t-yarn.rest{stroke:var(--yc)}.t-edge.rest{stroke:var(--yc-e)}
