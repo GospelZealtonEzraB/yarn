@@ -5,6 +5,8 @@ import { STITCH_PATTERNS, stitchPattern } from '../patterns/stitches'
 import { settingsOf, useStore } from '../store'
 
 const KEY = 'loopwise.openai'
+/** The app's own coach service, when one has been set up. With it, nobody needs a key. */
+const SERVICE: string = import.meta.env.VITE_COACH_URL ?? ''
 const read = (): { key: string; model: string } => {
   try { return { key: '', model: DEFAULT_MODEL, ...JSON.parse(localStorage.getItem(KEY) ?? '{}') } } catch { return { key: '', model: DEFAULT_MODEL } }
 }
@@ -65,8 +67,10 @@ export function Coach({ openProject }: { openProject: (id: string) => void }) {
         : identifyRequest(photo, cfg.model)
       let res: Response
       try {
-        res = await fetch(OPENAI_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${cfg.key}` }, body: JSON.stringify(body) })
-      } catch { throw new Error('Could not reach OpenAI. Check your connection. Some previews of this app block outside services: use the installed app instead.') }
+        res = SERVICE && !cfg.key
+          ? await fetch(SERVICE, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+          : await fetch(OPENAI_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${cfg.key}` }, body: JSON.stringify(body) })
+      } catch { throw new Error('Could not reach the coach. Check your connection. Some previews of this app block outside services: use the installed app instead.') }
       const raw = await res.text()
       if (!res.ok) throw new Error(explain(res.status, raw))
       const reply = JSON.parse(raw).choices?.[0]?.message?.content ?? ''
@@ -88,14 +92,24 @@ export function Coach({ openProject }: { openProject: (id: string) => void }) {
         <p className="sub">Show it a photo, get the next move</p>
       </header>
 
-      {!cfg.key ? (
-        <section className="card">
-          <h2>Connect your OpenAI key</h2>
-          <p className="sub">The coach sends your photo to OpenAI to be read. It needs your own OpenAI API key, and each scan costs a small amount on your OpenAI account.</p>
-          <label htmlFor="okey">OpenAI API key
-            <input id="okey" type="password" autoComplete="off" placeholder="sk-…" onChange={(e) => e.target.value.trim().length > 20 && save({ ...cfg, key: e.target.value.trim() })} /></label>
-          <p className="sub">The key is kept in this browser on this device only. Anyone who can use this browser could use it, so set a monthly spending limit in your OpenAI account.</p>
-        </section>
+      {!cfg.key && !SERVICE ? (
+        <>
+          <div className="callout drill">
+            <b>The coach is not switched on yet</b>
+            <p>Reading photos uses a paid AI service. It is waiting for a one-time setup by the app's owner, after which it works here with nothing to enter.</p>
+          </div>
+          <section className="card">
+            <h2>What it will do</h2>
+            <p><b>Check my work.</b> Photograph your knitting and it points out likely mistakes, with a fix for each.</p>
+            <p><b>Knit from a photo.</b> Show it a scarf, hat or mitts you like and it finds the closest pattern in the app.</p>
+          </section>
+          <details className="howto">
+            <summary>I have my own OpenAI key</summary>
+            <label htmlFor="okey">OpenAI API key
+              <input id="okey" type="password" autoComplete="off" placeholder="sk-…" onChange={(e) => e.target.value.trim().length > 20 && save({ ...cfg, key: e.target.value.trim() })} /></label>
+            <p className="sub">Kept in this browser on this device only. Each scan costs a small amount on your OpenAI account, so set a monthly spending limit there.</p>
+          </details>
+        </>
       ) : (
         <>
           <div className="seg">
@@ -117,7 +131,7 @@ export function Coach({ openProject }: { openProject: (id: string) => void }) {
               <input id="cphoto" type="file" accept="image/*" aria-label="Choose a photo" onChange={(e) => pickPhoto(e.target.files?.[0])} />
             </div>
             <button className="btn wide" disabled={!photo || busy} onClick={scan}>{busy ? 'Reading the photo…' : 'Scan this photo'}</button>
-            <p className="sub">The photo is shrunk, then sent to OpenAI with your key. It is not stored by this app.</p>
+            <p className="sub">The photo is shrunk, then sent to OpenAI to be read. It is not stored by this app.</p>
             {error && <p className="error" role="alert">{error}</p>}
           </section>
 
@@ -165,12 +179,14 @@ export function Coach({ openProject }: { openProject: (id: string) => void }) {
             </section>
           )}
 
-          <details className="howto">
-            <summary>Key and model settings</summary>
-            <label htmlFor="omodel">Model
-              <input id="omodel" value={cfg.model} onChange={(e) => save({ ...cfg, model: e.target.value.trim() })} spellCheck={false} /></label>
-            <button className="chip" onClick={() => { save({ key: '', model: cfg.model }); setPhoto(null); setCheck(null); setFound(null) }}>Remove the key from this device</button>
-          </details>
+          {cfg.key && (
+            <details className="howto">
+              <summary>Key and model settings</summary>
+              <label htmlFor="omodel">Model
+                <input id="omodel" value={cfg.model} onChange={(e) => save({ ...cfg, model: e.target.value.trim() })} spellCheck={false} /></label>
+              <button className="chip" onClick={() => { save({ key: '', model: cfg.model }); setPhoto(null); setCheck(null); setFound(null) }}>Remove the key from this device</button>
+            </details>
+          )}
         </>
       )}
     </>

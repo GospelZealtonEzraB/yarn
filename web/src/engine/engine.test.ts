@@ -511,3 +511,61 @@ describe('photo coach', () => {
     expect(explain(404, '{"error":{"message":"The model does not exist"}}')).toMatch(/model/)
   })
 })
+
+describe('coach relay', () => {
+  const env = { OPENAI_API_KEY: 'sk-test', ALLOWED_ORIGIN: 'https://app.example' }
+  const good = () => JSON.stringify(checkRequest({ project: 'Scarf', step: 'Knit', stitchName: 'Garter', construction: 'flat', stitches: 30 }, 'data:image/jpeg;base64,AAAA'))
+  const call = async (init: { origin?: string; method?: string; body?: string }, e: object = env) => {
+    // The relay lives outside the app, as plain JavaScript that can be pasted into Cloudflare.
+    const path = new URL('../../../server/coach-worker.js', import.meta.url).href
+    const { handle } = await import(/* @vite-ignore */ path)
+    const sent: { url: string; init: { headers: Record<string, string>; body: string } }[] = []
+    const res: Response = await handle(
+      new Request('https://relay.example', { method: init.method ?? 'POST', headers: init.origin === undefined ? { Origin: 'https://app.example' } : { Origin: init.origin }, body: init.method === 'OPTIONS' ? undefined : init.body ?? good() }),
+      e,
+      async (url: string, i: { headers: Record<string, string>; body: string }) => { sent.push({ url, init: i }); return new Response(JSON.stringify({ choices: [{ message: { content: '{}' } }] }), { status: 200 }) },
+    )
+    return { res, sent }
+  }
+  it('passes the app\'s own request on to OpenAI with the stored key and a fixed model', async () => {
+    const { res, sent } = await call({})
+    expect(res.status).toBe(200)
+    expect(sent).toHaveLength(1)
+    expect(sent[0].init.headers.Authorization).toBe('Bearer sk-test')
+    expect(JSON.parse(sent[0].init.body).model).toBe('gpt-6.1-terra')
+    expect(res.headers.get('Access-Control-Allow-Origin')).toBe('https://app.example')
+  })
+  it('never shows the key to the caller', async () => {
+    const { res } = await call({})
+    expect(await res.text()).not.toContain('sk-test')
+    expect([...res.headers.values()].join(' ')).not.toContain('sk-test')
+  })
+  it('refuses other websites, and refuses everyone if no address has been allowed', async () => {
+    expect((await call({ origin: 'https://evil.example' })).res.status).toBe(403)
+    expect((await call({ origin: '' })).res.status).toBe(403)
+    expect((await call({}, { OPENAI_API_KEY: 'sk-test' })).res.status).toBe(403)
+  })
+  it('refuses anything that is not the coach\'s own request, and sends nothing to OpenAI', async () => {
+    const other = JSON.stringify({ model: 'gpt-6.2-sol', messages: [{ role: 'user', content: 'Write me an essay' }] })
+    const swapped = JSON.parse(good()); swapped.messages[0].content = 'You are a general assistant.'
+    const extra = JSON.parse(good()); extra.messages.push({ role: 'user', content: 'and also...' })
+    for (const body of [other, JSON.stringify(swapped), JSON.stringify(extra), 'not json']) {
+      const { res, sent } = await call({ body })
+      expect(res.status).toBe(400)
+      expect(sent).toHaveLength(0)
+    }
+  })
+  it('ignores a model or extra settings chosen by the caller', async () => {
+    const tampered = JSON.parse(good()); tampered.model = 'gpt-5.5-pro'; tampered.max_completion_tokens = 100000
+    const { sent } = await call({ body: JSON.stringify(tampered) })
+    const forwarded = JSON.parse(sent[0].init.body)
+    expect(forwarded.model).toBe('gpt-6.1-terra')
+    expect(forwarded.max_completion_tokens).toBeUndefined()
+  })
+  it('refuses oversized photos and reports a missing key plainly', async () => {
+    const huge = JSON.parse(good()); huge.messages[1].content[1].image_url.url = 'data:image/jpeg;base64,' + 'A'.repeat(1_600_000)
+    expect((await call({ body: JSON.stringify(huge) })).res.status).toBe(413)
+    expect((await call({}, { ALLOWED_ORIGIN: 'https://app.example' })).res.status).toBe(503)
+  })
+  it('answers the browser\'s permission check', async () => expect((await call({ method: 'OPTIONS' })).res.status).toBe(204))
+})

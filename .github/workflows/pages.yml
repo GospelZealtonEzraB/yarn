@@ -32,6 +32,8 @@ jobs:
       - run: npm run build
         env:
           BASE_PATH: /${{ github.event.repository.name }}/
+          # Address of the photo coach relay (see server/README.md). Empty until it is set up.
+          VITE_COACH_URL: ${{ vars.COACH_URL }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: web/dist

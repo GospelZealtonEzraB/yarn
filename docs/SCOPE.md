@@ -66,7 +66,7 @@ about 75 kB to about 220 kB compressed.
   tested by the engine. The wording needs a knitter's read-through.
 - **Yarn-path view draws knit, purl, k2tog and ssk.** Yarn over and M1
   increases appear in the chart only.
-- **Photo coach runs on the knitter's own OpenAI key**, entered in the app and kept in that browser. There is no server yet, so the app cannot be shared with the coach switched on for other people.
+- **Photo coach is built but not switched on.** It needs the relay in `server/` deployed once, with the OpenAI key stored there. Until then the Coach tab says so. Entering a personal key in the app remains possible as a fallback.
 - **Row gauge is estimated** from stitch gauge. Steps say to trust the tape measure.
 - **The Worn view uses a plain egg-shaped head** with no face or ears, so the hat looks like it covers most of the head. A detailed head model would fix the look. The mitts have no worn view yet.
 - **Scarves have no 3D view.** They are flat, so the to-scale flat picture is the honest one.
@@ -94,8 +94,10 @@ OpenAI with the knitter's key.
 - **Guard rails:** the model is told never to give stitch counts or sizes, and
   every reply is checked against a fixed shape. Anything else is dropped.
 
-Still to do: a small server so the key does not live in the browser (free
-options: Cloudflare Workers, Vercel, Netlify or Deno Deploy), testing on many
+The key belongs on the relay in `server/` (a Cloudflare Worker, free plan),
+which accepts only the app's address and only the coach's own request.
+
+Still to do: deploying that relay, a per-person usage limit, testing on many
 real photos of mistakes, marking the problem on the photo, and converting
 written patterns.
 
