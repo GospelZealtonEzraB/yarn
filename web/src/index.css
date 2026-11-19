@@ -252,3 +252,18 @@ figure.hero{background:var(--surface);border:1px solid var(--line)}
 .find dt{font-family:"DM Mono",monospace;font-size:.74rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding-top:3px}
 .find dd{margin:0}
 .card>label,.howto>label{flex:none}
+textarea{font:inherit;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);resize:vertical;min-width:0}
+.activity{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:.92rem}
+.activity li{padding-left:22px;position:relative;color:var(--muted)}
+.activity li::before{content:"";position:absolute;left:4px;top:.5em;width:8px;height:8px;border-radius:50%;background:var(--line)}
+.activity li.tool{color:var(--ink)}.activity li.tool::before{background:var(--teal)}
+.activity li.problem{color:var(--ink)}.activity li.problem::before{background:var(--hot)}
+.activity li.done{color:var(--teal);font-weight:700}.activity li.done::before{background:var(--teal)}
+.activity li.thinking{font-style:italic}
+.skills{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap:6px}
+.skills .lesson{width:100%}
+.lesson small,.kit small{display:block;color:var(--muted);font-size:.8rem;font-weight:400}
+.kit li.why{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+.kit li.why>b{white-space:normal}
+.plain{margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:4px;font-size:.92rem}
+.tag.new{color:var(--wool)}

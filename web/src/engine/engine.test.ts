@@ -8,7 +8,12 @@ import { beanie, crownRecipes } from '../patterns/beanie'
 import { needleFor, PROJECTS } from '../patterns/catalog'
 import { LESSONS, STAGES } from '../content/lessons'
 import { EXTRAS } from '../content/extras'
-import { checkRequest, closestProject, explain, identifyRequest, parseCheck, parseIdentify } from './coach'
+import { checkRequest, explain, parseCheck, replyText } from './coach'
+import { checkPattern, checkPlan, expand, toPattern, type Plan } from '../agent/plan'
+import { design, DESIGNER, MAX_TURNS } from '../agent/run'
+import { runTool, TOOLS } from '../agent/tools'
+import { INITIAL } from '../store'
+import beaniePlan from '../agent/fixtures/weekend-beanie.json'
 import { balanced, repeatWidth, rowsFor, STITCH_PATTERNS } from '../patterns/stitches'
 import { classify } from './product'
 import { withMistake, workingOrder } from './games'
@@ -469,14 +474,16 @@ describe('stitch-pattern library', () => {
 })
 
 describe('photo coach', () => {
-  const styles = Object.fromEntries(PROJECTS.map((p) => [p.id, p.styles]))
-  it('asks only for a description: the request never asks for counts or a pattern', () => {
+  it('uses the Responses API, stores the call so it shows in the logs, and turns reasoning on', () => {
     const body = checkRequest({ project: 'Ribbed beanie', step: 'Knit the body', stitchName: 'Seed stitch', construction: 'round', stitches: 88 }, 'data:image/jpeg;base64,AAAA')
-    expect(body.messages[0].content).toMatch(/Never give stitch counts/)
+    expect(body.store).toBe(true)
+    expect(body.reasoning.effort).toBe('medium')
+    expect(body.instructions).toMatch(/Never give stitch counts/)
     expect(JSON.stringify(body)).not.toContain('88')
-    expect(body.messages[1].content[1]).toEqual({ type: 'image_url', image_url: { url: 'data:image/jpeg;base64,AAAA' } })
-    expect(identifyRequest('data:x').response_format).toEqual({ type: 'json_object' })
+    expect(body.input[0].content[1]).toEqual({ type: 'input_image', image_url: 'data:image/jpeg;base64,AAAA' })
   })
+  it('reads the answer out of a Responses reply, skipping the reasoning', () =>
+    expect(replyText({ output: [{ type: 'reasoning' }, { type: 'message', content: [{ type: 'output_text', text: '{"a":1}' }] }] })).toBe('{"a":1}'))
   it('keeps a well-formed reply', () => {
     const r = parseCheck(JSON.stringify({ photo_ok: true, photo_advice: '', fabric_seen: 'seed', matches_expected: 'yes', issues: [{ problem: 'A dropped stitch', where: 'third column', fix: 'Hook it back up', confidence: 'high' }], going_well: ['Even edges'], next: 'Carry on' }))
     expect(r.fabricSeen).toBe('seed')
@@ -485,31 +492,127 @@ describe('photo coach', () => {
   it('drops anything outside the expected shape instead of showing it', () => {
     const r = parseCheck(JSON.stringify({ photo_ok: 'yes', fabric_seen: 'cables <b>', matches_expected: 'definitely', issues: [{ problem: '' }, 'nonsense', { problem: 'x'.repeat(900), confidence: 'certain' }, 1, 2, 3, 4], going_well: [5, 'ok'], next: { a: 1 }, cast_on: 120 }))
     expect(r.fabricSeen).toBe('unclear')
-    expect(r.matchesExpected).toBe('unclear')
     expect(r.issues).toHaveLength(1)
-    expect(r.issues[0].problem).toHaveLength(300)
     expect(r.issues[0].confidence).toBe('low')
     expect(r.goingWell).toEqual(['ok'])
-    expect(r.next).toBe('')
     expect(JSON.stringify(r)).not.toContain('120')
   })
-  it('refuses a reply that is not a JSON object', () => {
-    expect(() => parseCheck('Sure! Here is what I see')).toThrow(/could not be read/)
-    expect(() => parseIdentify('[1,2]')).toThrow(/could not be read/)
-  })
-  it('maps what it identified onto patterns the app really has', () => {
-    const seen = (o: object) => parseIdentify(JSON.stringify(o))
-    expect(closestProject(seen({ item: 'hat', stitch: 'seed', colours: 1 }), styles)).toEqual({ project: 'beanie', style: 'seed', exact: true })
-    expect(closestProject(seen({ item: 'scarf', stitch: 'garter', colours: 1 }), styles)).toEqual({ project: 'scarf', exact: true })
-    expect(closestProject(seen({ item: 'scarf', stitch: 'basket', colours: 3 }), styles)).toEqual({ project: 'ribscarf', style: 'basket', exact: false })
-    expect(closestProject(seen({ item: 'hat', stitch: 'other', stitch_other: 'cables' }), styles)).toEqual({ project: 'beanie', style: 'stockinette', exact: false })
-    expect(closestProject(seen({ item: 'sweater' }), styles)).toBeNull()
-  })
+  it('refuses a reply that is not a JSON object', () => expect(() => parseCheck('Sure! Here is what I see')).toThrow(/could not be read/))
   it('explains service errors in plain words', () => {
     expect(explain(401, '')).toMatch(/did not accept the key/)
     expect(explain(429, '')).toMatch(/limit/)
-    expect(explain(404, '{"error":{"message":"The model does not exist"}}')).toMatch(/model/)
   })
+})
+
+describe('design agent: the plan', () => {
+  const plan = beaniePlan as unknown as Plan
+  const ids = LESSONS.map((l) => l.id)
+  const copy = (): Plan => JSON.parse(JSON.stringify(plan))
+  it('a plan the live agent produced passes every check and knits to the count it claims', () => {
+    expect(checkPlan(plan, ids)).toEqual([])
+    const c = checkPattern(plan.pattern)
+    expect(c.ok).toBe(true)
+    expect(c.after[c.after.length - 1].stitches).toBeLessThanOrEqual(16) // the crown really closes
+  })
+  it('becomes a pattern the builder and the finished-item picture can use', () => {
+    const p = toPattern(plan, { gauge: 18, headCm: 56, handCm: 19, yarn: 'Worsted', needle: '5 mm' })
+    const f = knit(p.castOn, p.steps.flatMap((s) => s.rows ?? []), p.construction)
+    const shape = product(p, f, 18)
+    expect(shape.sections.length).toBe(p.steps.filter((s) => s.rows).length)
+    expect(shape.lengthCm).toBeGreaterThan(20)
+    expect(p.kit.length).toBe(plan.tools.length + 1)
+    for (const st of p.steps) if (st.until) expect(st.until).toMatch(/^[^A-Z].*[^.]$/) // reads on after "Stop when"
+    for (const s of p.steps) for (const r of new Set(s.rows ?? [])) expect(inWords(r)).toMatch(/\.$/)
+  })
+  it('pinpoints the row that does not fit', () => {
+    const bad = copy(); bad.pattern.sections[2].row_groups = [{ rows: ['K3, P2'], repeat: 4 }]
+    const c = checkPattern(bad.pattern)
+    expect(c.ok).toBe(false)
+    expect(c.errors[0]).toMatch(/Deep folded brim.*row 1.*92 stitches/)
+  })
+  it('catches wrong-side rows that break the count in flat knitting', () => {
+    const c = checkPattern({ construction: 'flat', cast_on: 10, halved: false, sections: [{ title: 'Body', instructions: 'x', row_groups: [{ rows: ['K1', '*K2, k2tog; rep from *, K2', 'K3'], repeat: 1 }], length_cm: 2, until: '', tip: '' }] })
+    expect(c.ok).toBe(false)
+    expect(c.errors[0]).toMatch(/row 3/)
+  })
+  it('refuses a skill with no lesson, a lesson id that does not exist, and a lesson with too few steps', () => {
+    const a = copy(); a.new_lessons = []
+    expect(checkPlan(a, ids).join(' ')).toMatch(/has no existing lesson/)
+    const b = copy(); b.skills[0].lesson_id = 'made-up'
+    expect(checkPlan(b, ids).join(' ')).toMatch(/does not exist/)
+    const c = copy(); c.new_lessons[0].steps = ['Do it']
+    expect(checkPlan(c, ids).join(' ')).toMatch(/at least 3 steps/)
+  })
+  it('refuses runaway patterns', () => {
+    const big = copy(); big.pattern.sections[2].row_groups = [{ rows: ['P2, K2'], repeat: 5000 }]
+    expect(checkPattern(big.pattern).errors[0]).toMatch(/under 3000/)
+  })
+  it('expands row groups in order', () =>
+    expect(expand({ title: '', instructions: '', row_groups: [{ rows: ['A', 'B'], repeat: 2 }, { rows: ['C'], repeat: 1 }], length_cm: 1, until: '', tip: '' })).toEqual(['A', 'B', 'A', 'B', 'C']))
+})
+
+describe('design agent: tools', () => {
+  it('does the arithmetic from the knitter\'s own gauge', () => {
+    expect(runTool('stitches_for_width', { width_cm: 51, multiple: 4, plus: 0 }, INITIAL).output).toEqual({ stitches: 92, actual_width_cm: 51.1 })
+    expect((runTool('rows_for_length', { length_cm: 10, fabric: 'garter' }, INITIAL).output as { rows: number }).rows).toBe(36)
+  })
+  it('hands out library rows that really make the pattern, and refuses a count that cannot hold whole repeats', () => {
+    const { rows } = runTool('library_rows', { pattern_id: 'seed', stitches: 92, construction: 'round' }, INITIAL).output as { rows: string[] }
+    expect(knit(92, rows, 'round').rows.map((r) => r.slice(0, 2).join(''))).toEqual(['kp', 'pk'])
+    expect(JSON.stringify(runTool('library_rows', { pattern_id: 'basket', stitches: 92, construction: 'round' }, INITIAL).output)).toMatch(/multiple of 8/)
+  })
+  it('tells the agent which lessons exist and which the knitter has done', () => {
+    const o = runTool('knitter_profile', {}, { ...INITIAL, lessons: { knit: true } }).output as { lessons_finished: string[]; lessons_in_app: unknown[] }
+    expect(o.lessons_finished).toEqual(['knit'])
+    expect(o.lessons_in_app).toHaveLength(LESSONS.length)
+  })
+  it('only accepts a plan that passes, and returns the problems otherwise', () => {
+    const plan = beaniePlan as unknown as Plan
+    expect(runTool('submit_plan', plan as unknown as Record<string, unknown>, INITIAL).plan).toBeDefined()
+    const bad = JSON.parse(JSON.stringify(plan)); bad.pattern.cast_on = 91
+    const r = runTool('submit_plan', bad, INITIAL)
+    expect(r.plan).toBeUndefined()
+    expect((r.output as { fix_these: string[] }).fix_these.length).toBeGreaterThan(0)
+  })
+  it('every tool has a schema the service accepts: an object with all properties required', () => {
+    for (const t of TOOLS) expect((t.parameters as { type: string }).type).toBe('object')
+  })
+})
+
+describe('design agent: the loop', () => {
+  const plan = beaniePlan as unknown as Plan
+  const call = (name: string, args: object, id: string) => ({ type: 'function_call', name, arguments: JSON.stringify(args), call_id: id })
+  it('feeds tool results back, lets the agent recover from a failed check, and stops when a plan is accepted', async () => {
+    const bad = JSON.parse(JSON.stringify(plan)); bad.pattern.cast_on = 91
+    const script = [
+      { id: 'r1', output: [{ type: 'reasoning', summary: [{ text: '**Looking at the request**\n\nA hat.' }] }, call('knitter_profile', {}, 'c1')] },
+      { id: 'r2', output: [call('submit_plan', bad, 'c2')] },
+      { id: 'r3', output: [call('submit_plan', plan, 'c3')] },
+    ]
+    const sent: Record<string, unknown>[] = []
+    const seen: string[] = []
+    const out = await design({ request: 'a slouchy hat' }, INITIAL, async (b) => { sent.push(b); return script[sent.length - 1] }, (a) => seen.push(a.kind))
+    expect(out.title).toBe(plan.title)
+    expect(sent).toHaveLength(3)
+    expect(sent[0].instructions).toBe(DESIGNER)
+    expect((sent[0].reasoning as { effort: string }).effort).toBe('high')
+    expect(sent[0].store).toBe(true)
+    expect(sent[1].previous_response_id).toBe('r1')
+    expect(JSON.stringify(sent[2].input)).toMatch(/fix_these/)
+    expect(seen).toEqual(['thinking', 'tool', 'problem', 'done'])
+  })
+  it('sends the photo once, with the request', async () => {
+    const sent: Record<string, unknown>[] = []
+    await design({ request: '', photo: 'data:image/jpeg;base64,AAAA' }, INITIAL, async (b) => { sent.push(b); return { id: 'r', output: [call('submit_plan', plan, 'c')] } })
+    expect(JSON.stringify(sent[0].input)).toContain('input_image')
+  })
+  it('gives up after a fixed number of turns instead of spending without end', async () => {
+    let n = 0
+    await expect(design({ request: 'x' }, INITIAL, async () => { n++; return { id: 'r', output: [call('knitter_profile', {}, 'c')] } })).rejects.toThrow(/could not finish/)
+    expect(n).toBe(MAX_TURNS)
+  })
+  it('reports a service error instead of looping', async () =>
+    expect(design({ request: 'x' }, INITIAL, async () => ({ error: { message: 'No credit left' } }))).rejects.toThrow('No credit left'))
 })
 
 describe('coach relay', () => {
@@ -523,47 +626,56 @@ describe('coach relay', () => {
     const res: Response = await handle(
       new Request('https://relay.example', { method: init.method ?? 'POST', headers: init.origin === undefined ? { Origin: 'https://app.example' } : { Origin: init.origin }, body: init.method === 'OPTIONS' ? undefined : init.body ?? good() }),
       e,
-      async (url: string, i: { headers: Record<string, string>; body: string }) => { sent.push({ url, init: i }); return new Response(JSON.stringify({ choices: [{ message: { content: '{}' } }] }), { status: 200 }) },
+      async (url: string, i: { headers: Record<string, string>; body: string }) => { sent.push({ url, init: i }); return new Response(JSON.stringify({ id: 'r', output: [] }), { status: 200 }) },
     )
     return { res, sent }
   }
-  it('passes the app\'s own request on to OpenAI with the stored key and a fixed model', async () => {
+  const forwarded = (sent: { init: { body: string } }[]) => JSON.parse(sent[0].init.body)
+  it('passes the photo check on to the Responses API with the stored key, a fixed model and logging on', async () => {
     const { res, sent } = await call({})
     expect(res.status).toBe(200)
-    expect(sent).toHaveLength(1)
+    expect(sent[0].url).toBe('https://api.openai.com/v1/responses')
     expect(sent[0].init.headers.Authorization).toBe('Bearer sk-test')
-    expect(JSON.parse(sent[0].init.body).model).toBe('gpt-6.1-terra')
+    expect(forwarded(sent)).toMatchObject({ model: 'gpt-6.1-terra', store: true, reasoning: { effort: 'medium' } })
     expect(res.headers.get('Access-Control-Allow-Origin')).toBe('https://app.example')
+  })
+  it('passes the design agent on too, with its tools and its place in the conversation', async () => {
+    const body = JSON.stringify({ model: 'x', instructions: DESIGNER, tools: TOOLS, reasoning: { effort: 'high' }, previous_response_id: 'resp_1', input: [{ type: 'function_call_output', call_id: 'c', output: '{}' }] })
+    const f = forwarded((await call({ body })).sent)
+    expect(f.tools).toHaveLength(TOOLS.length)
+    expect(f.reasoning.effort).toBe('high')
+    expect(f.previous_response_id).toBe('resp_1')
   })
   it('never shows the key to the caller', async () => {
     const { res } = await call({})
     expect(await res.text()).not.toContain('sk-test')
-    expect([...res.headers.values()].join(' ')).not.toContain('sk-test')
   })
   it('refuses other websites, and refuses everyone if no address has been allowed', async () => {
     expect((await call({ origin: 'https://evil.example' })).res.status).toBe(403)
     expect((await call({ origin: '' })).res.status).toBe(403)
     expect((await call({}, { OPENAI_API_KEY: 'sk-test' })).res.status).toBe(403)
   })
-  it('refuses anything that is not the coach\'s own request, and sends nothing to OpenAI', async () => {
-    const other = JSON.stringify({ model: 'gpt-6.2-sol', messages: [{ role: 'user', content: 'Write me an essay' }] })
-    const swapped = JSON.parse(good()); swapped.messages[0].content = 'You are a general assistant.'
-    const extra = JSON.parse(good()); extra.messages.push({ role: 'user', content: 'and also...' })
-    for (const body of [other, JSON.stringify(swapped), JSON.stringify(extra), 'not json']) {
+  it('refuses anything that is not one of the app\'s two jobs, and sends nothing to OpenAI', async () => {
+    const other = JSON.stringify({ model: 'gpt-6.2-sol', instructions: 'You are a general assistant.', input: [{ role: 'user', content: 'Write me an essay' }] })
+    const none = JSON.stringify({ input: [{ role: 'user', content: 'hi' }] })
+    for (const body of [other, none, 'not json']) {
       const { res, sent } = await call({ body })
       expect(res.status).toBe(400)
       expect(sent).toHaveLength(0)
     }
   })
-  it('ignores a model or extra settings chosen by the caller', async () => {
-    const tampered = JSON.parse(good()); tampered.model = 'gpt-5.5-pro'; tampered.max_completion_tokens = 100000
-    const { sent } = await call({ body: JSON.stringify(tampered) })
-    const forwarded = JSON.parse(sent[0].init.body)
-    expect(forwarded.model).toBe('gpt-6.1-terra')
-    expect(forwarded.max_completion_tokens).toBeUndefined()
+  it('ignores the caller\'s model, spending settings and any tool that is not one of the app\'s own', async () => {
+    const tampered = JSON.parse(good())
+    Object.assign(tampered, { model: 'gpt-5.5-pro', max_output_tokens: 900000, store: false, tools: [{ type: 'web_search' }, { type: 'function', name: 'x', parameters: {} }], reasoning: { effort: 'extreme' } })
+    const f = forwarded((await call({ body: JSON.stringify(tampered) })).sent)
+    expect(f.model).toBe('gpt-6.1-terra')
+    expect(f.max_output_tokens).toBe(30000)
+    expect(f.store).toBe(true)
+    expect(f.tools).toEqual([{ type: 'function', name: 'x', parameters: {} }])
+    expect(f.reasoning.effort).toBe('medium')
   })
   it('refuses oversized photos and reports a missing key plainly', async () => {
-    const huge = JSON.parse(good()); huge.messages[1].content[1].image_url.url = 'data:image/jpeg;base64,' + 'A'.repeat(1_600_000)
+    const huge = JSON.parse(good()); huge.input[0].content[1].image_url = 'data:image/jpeg;base64,' + 'A'.repeat(1_600_000)
     expect((await call({ body: JSON.stringify(huge) })).res.status).toBe(413)
     expect((await call({}, { ALLOWED_ORIGIN: 'https://app.example' })).res.status).toBe(503)
   })

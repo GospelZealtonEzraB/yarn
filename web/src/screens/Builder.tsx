@@ -4,12 +4,13 @@ import { knit } from '../engine/fabric'
 import { product as shapeOf } from '../engine/product'
 import { inWords, parts, repeats } from '../engine/recipe'
 import { DIAGRAMS } from '../engine/technique'
-import { PROJECTS } from '../patterns/catalog'
+import { projectsFor } from '../patterns/catalog'
 import { rowsFor, stitchPattern } from '../patterns/stitches'
 import { settingsOf, useStore } from '../store'
 import { PieceView, YarnSwatch } from '../ui/FabricView'
 import { CastOnPicture, KitIcon, RingPicture, RowTiles, SeamPicture } from '../ui/Pictures'
 import { Product3D } from '../ui/Product3D'
+import { PlanDetails } from '../ui/PlanDetails'
 import { ProductView } from '../ui/ProductView'
 import { TechniqueView } from '../ui/TechniqueView'
 
@@ -17,7 +18,8 @@ const CLOSE_UP = 8 // stitches shown in the close-up
 
 export function Builder({ id, back, openLesson }: { id: string; back: () => void; openLesson: (id: string) => void }) {
   const { state, set } = useStore()
-  const project = PROJECTS.find((p) => p.id === id)!
+  const project = projectsFor(state.custom).find((p) => p.id === id)!
+  const plan = state.custom.find((c) => c.id === id)?.plan
   const [view, setView] = useState<'flat' | '3d' | 'worn'>('flat')
   const style = state.styles[id] ?? project.styles?.[0]
   // Some stitches need a stitch count this size does not give. Offer only the ones that work.
@@ -116,12 +118,13 @@ export function Builder({ id, back, openLesson }: { id: string; back: () => void
               <p className="sub"><b>{stitchPattern(style).name}.</b> {stitchPattern(style).note}</p>
             </section>
           )}
-          <section className="card">
+          {!plan && <section className="card">
             <h2>Your kit</h2>
             <ul className="kit">{pattern.kit.map((k) => <li key={k.name}><KitIcon name={k.name} /><span>{k.name}</span><b>{k.qty}</b></li>)}</ul>
             <p className="sub">Yarn amounts are estimates. Buy a little extra.</p>
-          </section>
-          <section className="card">
+          </section>}
+          {plan && <PlanDetails plan={plan} openLesson={openLesson} />}
+          {!plan && <section className="card">
             <h2>Skills this uses</h2>
             <div className="lessons">
               {needs.map((l) => (
@@ -131,7 +134,7 @@ export function Builder({ id, back, openLesson }: { id: string; back: () => void
               ))}
             </div>
             {needs.some((l) => !state.lessons[l.id]) && <p className="sub">You can start anyway. Each step links to the lesson it needs.</p>}
-          </section>
+          </section>}
         </>
       ) : (
         <>

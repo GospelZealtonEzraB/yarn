@@ -1,13 +1,14 @@
 /**
- * Photo coach relay, for Cloudflare Workers (free plan is enough).
+ * Coach relay, for Cloudflare Workers (free plan is enough).
  *
- * The app sends its request here instead of to OpenAI. This worker adds the
+ * The app sends its requests here instead of to OpenAI. This worker adds the
  * OpenAI key, which is stored as a secret on Cloudflare and never reaches the
  * browser, and passes the answer back.
  *
  * It is deliberately narrow so it cannot be used as a general-purpose OpenAI
- * proxy: it only accepts requests from the app's own address, only the coach's
- * own instructions, exactly one photo, a size limit and a fixed model.
+ * proxy: it only accepts requests from the app's own address, only with the
+ * app's own two sets of instructions, with a fixed model, a size limit and a
+ * cap on how much one reply may cost.
  *
  * Settings on Cloudflare:
  *   OPENAI_API_KEY  secret   the OpenAI key
@@ -15,7 +16,10 @@
  *   MODEL           variable optional, defaults to gpt-6.1-terra
  */
 const MAX_BYTES = 1_500_000
-const RULES_START = 'You help a beginner hand-knitter by looking at one photo.'
+const MAX_OUTPUT_TOKENS = 30_000
+// The opening words of the app's two jobs: checking a photo, and designing a pattern.
+const JOBS = ['You help a beginner hand-knitter by looking at one photo.', 'You are a knitting designer and teacher working inside a learn-to-knit app.']
+const EFFORTS = ['low', 'medium', 'high']
 
 // A 204 reply must not carry a body.
 const reply = (status, body, origin) => new Response(status === 204 ? null : JSON.stringify(body), {
@@ -43,21 +47,26 @@ export async function handle(request, env, send = fetch) {
   let body
   try { body = JSON.parse(raw) } catch { return reply(400, { error: { message: 'The request could not be read.' } }, allowed) }
 
-  const messages = Array.isArray(body.messages) ? body.messages : []
-  const system = messages[0], user = messages[1]
-  const parts = Array.isArray(user?.content) ? user.content : []
-  const ok = messages.length === 2
-    && system?.role === 'system' && typeof system.content === 'string' && system.content.startsWith(RULES_START)
-    && user?.role === 'user' && parts.length === 2
-    && parts[0]?.type === 'text' && typeof parts[0].text === 'string'
-    && parts[1]?.type === 'image_url' && String(parts[1].image_url?.url).startsWith('data:image/jpeg;base64,')
+  const ok = typeof body.instructions === 'string' && JOBS.some((j) => body.instructions.startsWith(j)) && Array.isArray(body.input) && body.input.length > 0
   if (!ok) return reply(400, { error: { message: 'Only the knitting coach may use this service.' } }, allowed)
 
-  // Rebuilt from the checked parts, so nothing else the caller sent is passed on.
-  const upstream = await send('https://api.openai.com/v1/chat/completions', {
+  // Rebuilt from named parts, so nothing else the caller sent is passed on, and the model and spending cap are ours.
+  const forward = {
+    model: env.MODEL || 'gpt-6.1-terra',
+    instructions: body.instructions,
+    input: body.input,
+    store: true,
+    max_output_tokens: MAX_OUTPUT_TOKENS,
+    reasoning: { effort: EFFORTS.includes(body.reasoning?.effort) ? body.reasoning.effort : 'medium', summary: 'auto' },
+  }
+  if (Array.isArray(body.tools)) forward.tools = body.tools.filter((t) => t?.type === 'function') // the app's own tools only: no web search, no code
+  if (typeof body.previous_response_id === 'string') forward.previous_response_id = body.previous_response_id
+  if (body.text?.format?.type === 'json_object') forward.text = { format: { type: 'json_object' } }
+
+  const upstream = await send('https://api.openai.com/v1/responses', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${env.OPENAI_API_KEY}` },
-    body: JSON.stringify({ model: env.MODEL || 'gpt-6.1-terra', response_format: { type: 'json_object' }, messages: [system, user] }),
+    body: JSON.stringify(forward),
   })
   const text = await upstream.text()
   let data

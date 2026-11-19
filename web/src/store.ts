@@ -1,5 +1,6 @@
 import { createContext, useContext } from 'react'
 import { needleFor, YARNS } from './patterns/catalog'
+import type { Plan } from './agent/plan'
 import type { Settings } from './patterns/types'
 
 export interface State {
@@ -14,9 +15,11 @@ export interface State {
   made: Record<string, number>
   /** The stitch pattern chosen for each project. */
   styles: Record<string, string>
+  /** Plans the design agent has made for this knitter. */
+  custom: { id: string; plan: Plan }[]
 }
 
-export const INITIAL: State = { yarn: 'worsted', gauge: 18, headCm: 56, handCm: 19, lessons: {}, projects: {}, quiz: { right: 0, asked: 0 }, made: {}, styles: {} }
+export const INITIAL: State = { yarn: 'worsted', gauge: 18, headCm: 56, handCm: 19, lessons: {}, projects: {}, quiz: { right: 0, asked: 0 }, made: {}, styles: {}, custom: [] }
 const KEY = 'loopwise.v1'
 
 /** Progress lives on this device only. Storage can be unavailable, and the app must still work. */

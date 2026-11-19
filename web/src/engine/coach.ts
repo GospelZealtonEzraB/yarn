@@ -9,7 +9,7 @@ import { STITCH_PATTERNS } from '../patterns/stitches'
  * dropped. Patterns always come from the app's own tested templates.
  */
 export const DEFAULT_MODEL = 'gpt-6.1-terra'
-export const OPENAI_URL = 'https://api.openai.com/v1/chat/completions'
+export const OPENAI_URL = 'https://api.openai.com/v1/responses'
 
 const STITCH_IDS = STITCH_PATTERNS.map((s) => s.id)
 const stitchList = STITCH_PATTERNS.map((s) => `"${s.id}" (${s.name})`).join(', ')
@@ -26,17 +26,6 @@ export interface CheckResult {
   goingWell: string[]
   next: string
 }
-export interface IdentifyResult {
-  item: 'scarf' | 'hat' | 'mitts' | 'other'
-  itemOther: string
-  stitch: string // a stitch id, "other" or "unclear"
-  stitchOther: string
-  colours: number
-  worked: 'flat' | 'round' | 'unclear'
-  confidence: Level
-  notes: string
-}
-
 const RULES = `You help a beginner hand-knitter by looking at one photo.
 Rules:
 - Describe only what is clearly visible in the photo. If you are not sure, say so and use "unclear" or "low".
@@ -45,15 +34,21 @@ Rules:
 - Use plain words a beginner knows. Keep every text field under 240 characters.
 - Reply with one JSON object and nothing else.`
 
+/** One Responses API request: stored so it shows in the account's logs, with real reasoning switched on. */
 function request(model: string, system: string, text: string, imageDataUrl: string) {
   return {
     model,
-    response_format: { type: 'json_object' },
-    messages: [
-      { role: 'system', content: system },
-      { role: 'user', content: [{ type: 'text', text }, { type: 'image_url', image_url: { url: imageDataUrl } }] },
-    ],
+    instructions: system,
+    reasoning: { effort: 'medium' },
+    store: true,
+    text: { format: { type: 'json_object' } },
+    input: [{ role: 'user', content: [{ type: 'input_text', text }, { type: 'input_image', image_url: imageDataUrl }] }],
   }
+}
+
+/** The text of the model's answer in a Responses API reply. */
+export function replyText(res: { output?: { type: string; content?: { type: string; text?: string }[] }[] }): string {
+  return (res.output ?? []).filter((o) => o.type === 'message').flatMap((o) => o.content ?? []).map((c) => c.text ?? '').join('')
 }
 
 export function checkRequest(ctx: CheckContext, imageDataUrl: string, model = DEFAULT_MODEL) {
@@ -70,22 +65,6 @@ JSON shape:
   "issues": [ { "problem": string, "where": string, "fix": string, "confidence": "high" | "medium" | "low" } ],   // at most 4
   "going_well": [ string ],       // at most 3 specific things that look right
   "next": string                  // one sentence on what to do now
-}`, imageDataUrl)
-}
-
-export function identifyRequest(imageDataUrl: string, model = DEFAULT_MODEL) {
-  return request(model, RULES, `The photo shows a finished knitted item the knitter would like to make.
-Say what it is and what stitch pattern its main fabric uses.
-JSON shape:
-{
-  "item": "scarf" | "hat" | "mitts" | "other",
-  "item_other": string,           // what it is, if "other"; else ""
-  "stitch": one of ${stitchList}, "other", "unclear",
-  "stitch_other": string,         // name it if "other" (for example cables, lace, colourwork); else ""
-  "colours": number,              // how many yarn colours
-  "worked": "flat" | "round" | "unclear",
-  "confidence": "high" | "medium" | "low",
-  "notes": string                 // anything that affects whether a beginner could make it
 }`, imageDataUrl)
 }
 
@@ -119,34 +98,6 @@ export function parseCheck(raw: string): CheckResult {
     goingWell: (Array.isArray(o.going_well) ? o.going_well : []).map((g) => text(g)).filter(Boolean).slice(0, 3),
     next: text(o.next),
   }
-}
-
-export function parseIdentify(raw: string): IdentifyResult {
-  const o = object(raw)
-  const colours = Number(o.colours)
-  return {
-    item: oneOf(o.item, ['scarf', 'hat', 'mitts', 'other'] as const, 'other'),
-    itemOther: text(o.item_other, 80),
-    stitch: stitch(o.stitch),
-    stitchOther: text(o.stitch_other, 80),
-    colours: Number.isFinite(colours) && colours >= 1 && colours <= 20 ? Math.round(colours) : 1,
-    worked: oneOf(o.worked, ['flat', 'round', 'unclear'] as const, 'unclear'),
-    confidence: level(o.confidence),
-    notes: text(o.notes),
-  }
-}
-
-/** Which of the app's projects, in which stitch, comes closest to what was identified. */
-export function closestProject(r: IdentifyResult, styles: Record<string, string[] | undefined>): { project: string; style?: string; exact: boolean } | null {
-  const pick = (project: string): { project: string; style?: string; exact: boolean } => {
-    const offered = styles[project] ?? []
-    const has = offered.includes(r.stitch)
-    return { project, style: has ? r.stitch : offered[0], exact: has && r.colours === 1 }
-  }
-  if (r.item === 'scarf') return r.stitch === 'garter' ? { project: 'scarf', exact: r.colours === 1 } : pick('ribscarf')
-  if (r.item === 'hat') return pick('beanie')
-  if (r.item === 'mitts') return pick('mitts')
-  return null
 }
 
 /** A plain message for the ways a call to the service can fail. */

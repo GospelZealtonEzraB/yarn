@@ -1,12 +1,12 @@
 import { LESSONS, STAGES } from '../content/lessons'
-import { needleFor, PROJECTS, YARNS } from '../patterns/catalog'
+import { needleFor, PROJECTS, projectsFor, YARNS } from '../patterns/catalog'
 import { useStore } from '../store'
 
 export function Learn({ open, openProject }: { open: (lessonId: string) => void; openProject: (id: string) => void }) {
   const { state, set } = useStore()
   const next = LESSONS.find((l) => !state.lessons[l.id])
   const doneCount = LESSONS.filter((l) => state.lessons[l.id]).length
-  const inProgress = PROJECTS.find((p) => (state.projects[p.id]?.step ?? 0) > 0)
+  const inProgress = projectsFor(state.custom).find((p) => (state.projects[p.id]?.step ?? 0) > 0)
   return (
     <>
       <header className="top">

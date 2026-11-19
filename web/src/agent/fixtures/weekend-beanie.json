@@ -1,0 +1,317 @@
+{
+ "title": "Relaxed Weekend Beanie",
+ "summary": "A slouchy seed-stitch beanie with a deep, fold-up 2 × 2 ribbed brim and a smooth shaped crown. Sized for your 56 cm head, this is an intermediate first project because it introduces purling, circular knitting and crown shaping.",
+ "what_i_saw": "You described a relaxed weekend beanie with a deep 2 × 2 ribbed brim and a seed-stitch body; no photo or colour was supplied.",
+ "difficulty": "intermediate",
+ "assumptions": [
+  "The deep brim is folded up, not worn as a single layer.",
+  "A single solid colour and a smooth knit crown are acceptable; the slouch comes primarily from extra length.",
+  "The stitch count uses your recorded gauge of 18 stitches per 10 cm; check that you can match it in seed stitch in the round.",
+  "The nominal body circumference at that gauge is about 51.1 cm, before allowing for the fabric stretching around your 56 cm head. The rib will draw in when relaxed."
+ ],
+ "yarn": {
+  "weight": "Medium-weight yarn suitable for 5 mm needles and the stated gauge",
+  "amount": "About 220–250 m; buy enough of the same dye lot",
+  "colours": [
+   "Oatmeal, or one solid colour of your choice"
+  ],
+  "note": "A smooth, springy yarn makes the rib and seed texture easier to see. Check the care instructions on the ball band."
+ },
+ "tools": [
+  {
+   "name": "Circular knitting needle",
+   "size_or_qty": "5 mm, 40 cm long",
+   "why": "For the brim and body in the round."
+  },
+  {
+   "name": "Double-pointed needles",
+   "size_or_qty": "5 mm, a set of 4 or 5, about 15–20 cm long",
+   "why": "For the crown once it becomes too small for the circular needle."
+  },
+  {
+   "name": "Stitch marker",
+   "size_or_qty": "1",
+   "why": "To mark the beginning of each round."
+  },
+  {
+   "name": "Blunt yarn needle",
+   "size_or_qty": "1",
+   "why": "To gather the crown and weave in the tails."
+  },
+  {
+   "name": "Tape measure",
+   "size_or_qty": "1",
+   "why": "To check gauge, fit and section lengths."
+  },
+  {
+   "name": "Scissors",
+   "size_or_qty": "1 pair",
+   "why": "To cut the yarn."
+  }
+ ],
+ "skills": [
+  {
+   "name": "Read your ball band",
+   "why": "Choose yarn and follow its care instructions.",
+   "lesson_id": "kit"
+  },
+  {
+   "name": "Slip knot",
+   "why": "Start the cast-on.",
+   "lesson_id": "slipknot"
+  },
+  {
+   "name": "Long-tail cast-on",
+   "why": "Make the stretchy lower edge of the brim.",
+   "lesson_id": "caston"
+  },
+  {
+   "name": "The knit stitch",
+   "why": "Make knit stitches in the brim, body and crown.",
+   "lesson_id": "knit"
+  },
+  {
+   "name": "The purl stitch",
+   "why": "Make the purl stitches in rib and seed stitch.",
+   "lesson_id": "purl"
+  },
+  {
+   "name": "Read your stitches",
+   "why": "Distinguish knit Vs from purl bumps in the seed stitch.",
+   "lesson_id": "read"
+  },
+  {
+   "name": "Ribbing",
+   "why": "Make the stretchy 2 × 2 brim.",
+   "lesson_id": "rib"
+  },
+  {
+   "name": "Join in the round",
+   "why": "Make the hat as a seamless tube.",
+   "lesson_id": "round"
+  },
+  {
+   "name": "Seed stitch in the round",
+   "why": "Make the pebbly body texture.",
+   "lesson_id": null
+  },
+  {
+   "name": "Knit a gauge swatch",
+   "why": "Check the seed-stitch gauge and make sure the hat will fit.",
+   "lesson_id": "gauge"
+  },
+  {
+   "name": "Knit two together",
+   "why": "Decrease stitches to shape the crown.",
+   "lesson_id": "k2tog"
+  },
+  {
+   "name": "Double-pointed needles",
+   "why": "Keep knitting when the crown is too small for the circular needle.",
+   "lesson_id": "dpn"
+  },
+  {
+   "name": "Gather a crown closed",
+   "why": "Close the remaining live stitches without a bind-off.",
+   "lesson_id": null
+  },
+  {
+   "name": "Weave in the ends",
+   "why": "Secure the yarn tails neatly.",
+   "lesson_id": "weave"
+  }
+ ],
+ "new_lessons": [
+  {
+   "skill": "Seed stitch in the round",
+   "title": "Seed stitch in the round",
+   "goal": "Make an even pebbly fabric by alternating knit and purl stitches over an even number of stitches.",
+   "steps": [
+    "Place a marker at the start of the round. Hold the needle with the next stitch in your left hand and the working needle and yarn in your right hand.",
+    "For the first round, bring the yarn between the needle tips to the front and purl one stitch.",
+    "Move the yarn between the tips to the back and knit one stitch. Repeat purl one, knit one to the marker.",
+    "For the next round, keep the yarn at the back and knit the first stitch.",
+    "Bring the yarn between the tips to the front and purl the next stitch. Repeat knit one, purl one to the marker.",
+    "Repeat these two rounds, knitting the purl bumps and purling the knit Vs from the round below."
+   ],
+   "check": "The fabric has small scattered bumps rather than vertical columns, and the stitch count stays the same.",
+   "watch": "If you get rib-like columns, you may be repeating the same round instead of alternating the two rounds; check the stitches below and knit a bump or purl a V."
+  },
+  {
+   "skill": "Gather a crown closed",
+   "title": "Gather the live crown stitches",
+   "goal": "Close the top of the hat securely through the remaining live stitches.",
+   "steps": [
+    "After the final decrease round, cut the working yarn leaving a tail about 20 cm long.",
+    "Thread the tail through the eye of a blunt yarn needle.",
+    "Starting with the next live stitch, pass the yarn needle through each remaining stitch in turn while the stitches are still on the knitting needles.",
+    "Slide the threaded stitches off the knitting needles, checking that none were missed.",
+    "Pull the tail snugly to close the opening, then take the yarn needle through the centre to the inside of the hat.",
+    "Secure the tail on the inside by weaving it through the surrounding stitches."
+   ],
+   "check": "All the live stitches are caught on the yarn and the crown opening is closed without a loose stitch.",
+   "watch": "A missed live stitch can unravel; if one is left behind, put it back on a knitting needle and thread the tail through it before tightening."
+  }
+ ],
+ "pattern": {
+  "construction": "round",
+  "cast_on": 92,
+  "halved": true,
+  "sections": [
+   {
+    "title": "Cast on",
+    "instructions": "Using the 5 mm circular needle and a loose long-tail cast-on, cast on 92 stitches. Leave a tail for weaving in.",
+    "row_groups": [],
+    "length_cm": 0,
+    "until": "",
+    "tip": "Cast on loosely enough for the brim to stretch over your head."
+   },
+   {
+    "title": "Join",
+    "instructions": "Arrange the stitches around the circular needle without twisting the cast-on edge. Place a marker for the beginning of the round, then join to work in the round.",
+    "row_groups": [],
+    "length_cm": 0,
+    "until": "",
+    "tip": "The cast-on edge should point inward all the way around."
+   },
+   {
+    "title": "Deep folded brim",
+    "instructions": "Work the 2 × 2 rib in rounds. About 38 rounds are estimated; add or omit rounds as needed to reach the measured length. This brim will be folded in half.",
+    "row_groups": [
+     {
+      "rows": [
+       "P2, K2"
+      ],
+      "repeat": 38
+     }
+    ],
+    "length_cm": 16,
+    "until": "The rib measures 16 cm from the cast-on edge, unstretched.",
+    "tip": "Keep the yarn at the front for purl stitches and at the back for knit stitches. Check that the brim stretches comfortably around your head."
+   },
+   {
+    "title": "Seed-stitch body",
+    "instructions": "Work the two-round seed-stitch repeat, about 22 times, adjusting by complete repeats to reach the length. The body is deliberately long for a relaxed slouch.",
+    "row_groups": [
+     {
+      "rows": [
+       "P1, K1",
+       "K1, P1"
+      ],
+      "repeat": 22
+     }
+    ],
+    "length_cm": 15,
+    "until": "The seed-stitch section measures about 15 cm from the top of the rib, unstretched, ending after a complete two-round repeat.",
+    "tip": "Knit the purl bumps and purl the knit Vs from the round below."
+   },
+   {
+    "title": "Shaped crown",
+    "instructions": "Work the listed rounds once in order, beginning at the round marker. The first decrease round makes 88 stitches; the later decrease rounds remove 8 stitches each. Change to 5 mm double-pointed needles when the stitches no longer fit comfortably around the circular needle. This smooth knit crown is a small contrast to the seed-stitch body.",
+    "row_groups": [
+     {
+      "rows": [
+       "K21, k2tog"
+      ],
+      "repeat": 1
+     },
+     {
+      "rows": [
+       "K9, k2tog",
+       "K1"
+      ],
+      "repeat": 1
+     },
+     {
+      "rows": [
+       "K8, k2tog",
+       "K1"
+      ],
+      "repeat": 1
+     },
+     {
+      "rows": [
+       "K7, k2tog",
+       "K1"
+      ],
+      "repeat": 1
+     },
+     {
+      "rows": [
+       "K6, k2tog",
+       "K1"
+      ],
+      "repeat": 1
+     },
+     {
+      "rows": [
+       "K5, k2tog",
+       "K1"
+      ],
+      "repeat": 1
+     },
+     {
+      "rows": [
+       "K4, k2tog"
+      ],
+      "repeat": 1
+     },
+     {
+      "rows": [
+       "K3, k2tog"
+      ],
+      "repeat": 1
+     },
+     {
+      "rows": [
+       "K2, k2tog"
+      ],
+      "repeat": 1
+     },
+     {
+      "rows": [
+       "K1, k2tog"
+      ],
+      "repeat": 1
+     },
+     {
+      "rows": [
+       "k2tog"
+      ],
+      "repeat": 1
+     }
+    ],
+    "length_cm": 6.5,
+    "until": "Complete all 16 shaping rounds; the crown should measure about 6.5 cm from the start of shaping, depending on your row gauge.",
+    "tip": "The shaping rounds must all be completed even if their measured length differs from the estimate; adjust the seed body beforehand if needed."
+   },
+   {
+    "title": "Close the crown",
+    "instructions": "Cut the yarn leaving a 20 cm tail. Thread it onto a yarn needle, pass it through the remaining 8 stitches, slide them off the needles, and pull snugly to close. Take the tail inside and secure it.",
+    "row_groups": [],
+    "length_cm": 0,
+    "until": "",
+    "tip": "This gathered closure replaces a bind-off."
+   },
+   {
+    "title": "Finish",
+    "instructions": "Weave in both tails, gently wash and dry flat, then fold the ribbed brim up by about 8 cm.",
+    "row_groups": [],
+    "length_cm": 0,
+    "until": "",
+    "tip": "Do not stretch the brim while drying."
+   }
+  ]
+ },
+ "finishing": [
+  "Before starting the hat, make a seed-stitch swatch in the round, wash and dry it as you will the hat, and measure over 10 cm. Aim for 18 stitches; change needle size and swatch again if needed, then use the matching size for both circular and double-pointed needles.",
+  "Check the brim stretches comfortably over your head before proceeding too far; the rib pulls in when relaxed.",
+  "Gather the crown, weave in the tails, wash according to the yarn label and dry flat.",
+  "Fold up about 8 cm of the brim. The estimated finished height with the brim folded is about 29.5 cm, depending on your row gauge."
+ ],
+ "not_checked": [
+  "The cast-on, untwisted join, switch to double-pointed needles, gathered closure, weaving in and folding are described in words rather than verified as row recipes.",
+  "Actual gauge, fabric stretch, fit, yarn amount and finished measurements depend on your yarn and knitting; check the swatch and try the brim.",
+  "The row checker verifies stitch counts and that the recipes fit; it does not verify the appearance of the seed texture or the neatness of the crown."
+ ]
+}

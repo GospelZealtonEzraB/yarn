@@ -1,4 +1,4 @@
-# Photo coach relay
+# Coach relay
 
 A small Cloudflare Worker that holds the OpenAI key so the app does not need
 one. Free plan is enough.
@@ -20,6 +20,9 @@ one. Free plan is enough.
    address.
 7. Re-run the latest "Deploy to GitHub Pages" workflow. The Coach tab now
    works with no key.
+
+A design takes a few minutes and several calls with reasoning switched on, so
+it costs noticeably more than a photo check.
 
 ## Keeping the bill small
 

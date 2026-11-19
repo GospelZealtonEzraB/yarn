@@ -2,6 +2,7 @@ import { BEANIE_STYLES, beaniePattern } from './beanie'
 import { MITT_STYLES, mittsPattern } from './mitts'
 import { ribScarfPattern, SCARF_STYLES } from './ribScarf'
 import { scarfPattern } from './scarf'
+import { toPattern, type Plan } from '../agent/plan'
 import type { Pattern, Settings } from './types'
 
 export interface ProjectDef {
@@ -32,6 +33,18 @@ export const PROJECTS: ProjectDef[] = [
   { id: 'socks', name: 'Socks', stage: 6, hours: '16 hours', blurb: 'Turning a heel is the party trick.', outline: 'M38 6h24v32l14 12c8 8-2 16-10 12L38 46z' },
   { id: 'sweater', name: 'Raglan sweater', stage: 6, hours: '40 hours', blurb: 'Top-down, tried on as you go.', outline: 'M38 8h24l22 14-8 14-10-6v32H34V30l-10 6-8-14z' },
 ]
+
+const LEVEL = { beginner: 1, easy: 2, intermediate: 3, advanced: 5 }
+
+/** The built-in projects plus the ones designed for this knitter. */
+export function projectsFor(custom: { id: string; plan: Plan }[]): ProjectDef[] {
+  return [...PROJECTS, ...custom.map(({ id, plan }): ProjectDef => ({
+    id, name: plan.title, stage: LEVEL[plan.difficulty] ?? 3, hours: 'designed for you', blurb: plan.summary,
+    outline: 'M50 8l8 20 22 2-17 14 6 21-19-12-19 12 6-21-17-14 22-2z',
+    needs: plan.skills.flatMap((s) => (s.lesson_id ? [s.lesson_id] : [])),
+    build: (s) => toPattern(plan, s),
+  }))]
+}
 
 export const YARNS: Record<string, { label: string; gauge: number; needle: string }> = {
   dk: { label: 'DK', gauge: 22, needle: '4 mm' },

@@ -1,8 +1,11 @@
 import { useState } from 'react'
-import { checkRequest, closestProject, DEFAULT_MODEL, explain, identifyRequest, OPENAI_URL, parseCheck, parseIdentify, type CheckResult, type IdentifyResult } from '../engine/coach'
-import { PROJECTS } from '../patterns/catalog'
-import { STITCH_PATTERNS, stitchPattern } from '../patterns/stitches'
+import type { Plan } from '../agent/plan'
+import { design, type Activity, type Send } from '../agent/run'
+import { checkRequest, DEFAULT_MODEL, explain, OPENAI_URL, parseCheck, replyText, type CheckResult } from '../engine/coach'
+import { projectsFor } from '../patterns/catalog'
+import { STITCH_PATTERNS } from '../patterns/stitches'
 import { settingsOf, useStore } from '../store'
+import { PlanDetails } from '../ui/PlanDetails'
 
 const KEY = 'loopwise.openai'
 /** The app's own coach service, when one has been set up. With it, nobody needs a key. */
@@ -29,165 +32,168 @@ function shrink(file: File): Promise<string> {
   })
 }
 
-export function Coach({ openProject }: { openProject: (id: string) => void }) {
+export function Coach({ openProject, openLesson }: { openProject: (id: string) => void; openLesson: (id: string) => void }) {
   const { state, set } = useStore()
   const [cfg, setCfg] = useState(read)
-  const [mode, setMode] = useState<'check' | 'identify'>('check')
+  const [mode, setMode] = useState<'design' | 'check'>('design')
   const [photo, setPhoto] = useState<string | null>(null)
+  const [ask, setAsk] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [log, setLog] = useState<Activity[]>([])
+  const [plan, setPlan] = useState<Plan | null>(null)
   const [check, setCheck] = useState<CheckResult | null>(null)
-  const [found, setFound] = useState<IdentifyResult | null>(null)
-  const makeable = PROJECTS.filter((p) => p.build)
-  const [projectId, setProjectId] = useState(() => (makeable.find((p) => (state.projects[p.id]?.step ?? 0) > 0) ?? makeable[0]).id)
+  const all = projectsFor(state.custom).filter((p) => p.build)
+  const [projectId, setProjectId] = useState(() => (all.find((p) => (state.projects[p.id]?.step ?? 0) > 0) ?? all[0]).id)
 
   const save = (next: { key: string; model: string }) => {
     setCfg(next)
     try { localStorage.setItem(KEY, JSON.stringify(next)) } catch { /* storage blocked: the key lasts until the page closes */ }
   }
+  const clear = () => { setError(null); setPlan(null); setCheck(null); setLog([]) }
   const pickPhoto = async (file: File | undefined) => {
     if (!file) return
-    setError(null); setCheck(null); setFound(null)
+    clear()
     try { setPhoto(await shrink(file)) } catch (e) { setError((e as Error).message) }
   }
 
-  const scan = async () => {
-    if (!photo) return
-    setBusy(true); setError(null); setCheck(null); setFound(null)
+  /** One request to the model, through the app's service if there is one, otherwise with the knitter's own key. */
+  const send: Send = async (body) => {
+    let res: Response
     try {
-      const project = PROJECTS.find((p) => p.id === projectId)!
-      const style = state.styles[projectId] ?? project.styles?.[0]
-      const pattern = project.build!(settingsOf(state), style)
-      const saved = state.projects[projectId] ?? { step: 0, count: 0 }
-      // Judge the photo against the fabric the knitter is on: this step if it is knitting, otherwise the next knitting step.
-      const at = Math.max(saved.step - 1, 0)
-      const step = pattern.steps.slice(at).find((st) => st.chart) ?? pattern.steps.slice(0, at).reverse().find((st) => st.chart) ?? pattern.steps[at]
-      const body = mode === 'check'
-        ? checkRequest({ project: project.name, step: step.title, stitchName: step.chart ? STITCH_PATTERNS.find((s) => JSON.stringify(s.chart) === JSON.stringify(step.chart))?.name ?? 'the pattern stitch' : 'not a fabric step', construction: pattern.construction, stitches: pattern.castOn }, photo, cfg.model)
-        : identifyRequest(photo, cfg.model)
-      let res: Response
-      try {
-        res = SERVICE && !cfg.key
-          ? await fetch(SERVICE, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-          : await fetch(OPENAI_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${cfg.key}` }, body: JSON.stringify(body) })
-      } catch { throw new Error('Could not reach the coach. Check your connection. Some previews of this app block outside services: use the installed app instead.') }
-      const raw = await res.text()
-      if (!res.ok) throw new Error(explain(res.status, raw))
-      const reply = JSON.parse(raw).choices?.[0]?.message?.content ?? ''
-      if (mode === 'check') setCheck(parseCheck(reply)); else setFound(parseIdentify(reply))
-    } catch (e) { setError((e as Error).message) } finally { setBusy(false) }
+      res = SERVICE && !cfg.key
+        ? await fetch(SERVICE, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+        : await fetch(OPENAI_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${cfg.key}` }, body: JSON.stringify({ ...body, model: cfg.model || body.model }) })
+    } catch { throw new Error('Could not reach the coach. Check your connection. Some previews of this app block outside services: use the installed app instead.') }
+    const raw = await res.text()
+    if (!res.ok) throw new Error(explain(res.status, raw))
+    return JSON.parse(raw)
   }
 
-  const match = found && closestProject(found, Object.fromEntries(PROJECTS.map((p) => [p.id, p.styles])))
-  const start = () => {
-    if (!match) return
-    if (match.style) set({ styles: { ...state.styles, [match.project]: match.style } })
-    openProject(match.project)
+  const runDesign = async () => {
+    setBusy(true); clear()
+    try { setPlan(await design({ request: ask, photo: photo ?? undefined }, state, send, (a) => setLog((l) => [...l, a]))) }
+    catch (e) { setError((e as Error).message) } finally { setBusy(false) }
   }
+  const runCheck = async () => {
+    if (!photo) return
+    setBusy(true); clear()
+    try {
+      const project = all.find((p) => p.id === projectId)!
+      const pattern = project.build!(settingsOf(state), state.styles[projectId] ?? project.styles?.[0])
+      const at = Math.max((state.projects[projectId]?.step ?? 0) - 1, 0)
+      // Judge the photo against the fabric the knitter is on: this step if it is knitting, otherwise the nearest knitting step.
+      const step = pattern.steps.slice(at).find((st) => st.rows) ?? pattern.steps.slice(0, at).reverse().find((st) => st.rows) ?? pattern.steps[at]
+      const fabric = step.chart ? STITCH_PATTERNS.find((s) => JSON.stringify(s.chart) === JSON.stringify(step.chart))?.name : undefined
+      const res = await send(checkRequest({ project: project.name, step: step.title, stitchName: fabric ?? `the fabric described as: ${step.text.slice(0, 200)}`, construction: pattern.construction, stitches: pattern.castOn }, photo))
+      setCheck(parseCheck(replyText(res)))
+    } catch (e) { setError((e as Error).message) } finally { setBusy(false) }
+  }
+  const keep = () => {
+    if (!plan) return
+    const id = `custom-${Date.now().toString(36)}`
+    set({ custom: [...state.custom, { id, plan }] })
+    openProject(id)
+  }
+
+  if (!cfg.key && !SERVICE) return (
+    <>
+      <header className="top"><h1>Design coach</h1><p className="sub">Not switched on yet</p></header>
+      <div className="callout drill">
+        <b>The coach is waiting for a one-time setup</b>
+        <p>Designing from a photo and checking your work use a paid AI service. Once the app's owner has set it up, it works here with nothing to enter.</p>
+      </div>
+      <section className="card">
+        <h2>What it will do</h2>
+        <p><b>Design it for me.</b> Show it a photo or describe what you want. It designs a pattern in your size, works out what you need to learn and buy, and writes any lessons the app is missing.</p>
+        <p><b>Check my work.</b> Photograph your knitting and it points out likely mistakes, with a fix for each.</p>
+      </section>
+      <details className="howto">
+        <summary>I have my own OpenAI key</summary>
+        <label htmlFor="okey">OpenAI API key
+          <input id="okey" type="password" autoComplete="off" placeholder="sk-…" onChange={(e) => e.target.value.trim().length > 20 && save({ ...cfg, key: e.target.value.trim() })} /></label>
+        <p className="sub">Kept in this browser on this device only. A design costs more than a quick check, so set a monthly spending limit in your OpenAI account.</p>
+      </details>
+    </>
+  )
 
   return (
     <>
-      <header className="top">
-        <h1>Photo coach</h1>
-        <p className="sub">Show it a photo, get the next move</p>
-      </header>
+      <header className="top"><h1>Design coach</h1><p className="sub">Show it what you want to make, or what you have made</p></header>
+      <div className="seg">
+        <button aria-pressed={mode === 'design'} onClick={() => { setMode('design'); clear() }}>Design it for me</button>
+        <button aria-pressed={mode === 'check'} onClick={() => { setMode('check'); clear() }}>Check my work</button>
+      </div>
 
-      {!cfg.key && !SERVICE ? (
+      <section className="card">
+        {mode === 'check' ? (
+          <label htmlFor="cproj">What are you knitting?
+            <select id="cproj" value={projectId} onChange={(e) => setProjectId(e.target.value)}>{all.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
+        ) : (
+          <label htmlFor="cask">What do you want to make?
+            <textarea id="cask" rows={3} value={ask} placeholder="A slouchy hat like the photo, but with a ribbed brim I can fold up" onChange={(e) => setAsk(e.target.value)} /></label>
+        )}
+        <div className="drop">
+          {photo && <img src={photo} alt="The photo you chose" />}
+          <b>{mode === 'check' ? 'A photo of your knitting' : 'A photo of what you want to make (optional)'}</b>
+          <span className="sub">{mode === 'check' ? 'Lay it flat in daylight and fill the frame with stitches.' : 'A clear shot of the whole item works best.'}</span>
+          <input id="cphoto" type="file" accept="image/*" aria-label="Choose a photo" onChange={(e) => pickPhoto(e.target.files?.[0])} />
+        </div>
+        {mode === 'design'
+          ? <button className="btn wide" disabled={busy || (!photo && ask.trim().length < 4)} onClick={runDesign}>{busy ? 'Designing…' : 'Design my pattern'}</button>
+          : <button className="btn wide" disabled={busy || !photo} onClick={runCheck}>{busy ? 'Reading the photo…' : 'Scan this photo'}</button>}
+        <p className="sub">{mode === 'design' ? 'Takes a few minutes: the designer drafts, test-knits and corrects before it answers. ' : ''}Your photo and request are sent to OpenAI to be read. This app does not store the photo.</p>
+        {error && <p className="error" role="alert">{error}</p>}
+      </section>
+
+      {log.length > 0 && (
+        <section className="card" aria-live="polite">
+          <h2>{busy ? 'The designer is working' : 'How the designer got there'}</h2>
+          <ol className="activity">{log.map((a, i) => <li key={i} className={a.kind}>{a.text}</li>)}</ol>
+        </section>
+      )}
+
+      {plan && (
         <>
-          <div className="callout drill">
-            <b>The coach is not switched on yet</b>
-            <p>Reading photos uses a paid AI service. It is waiting for a one-time setup by the app's owner, after which it works here with nothing to enter.</p>
-          </div>
+          <header className="top"><h1>{plan.title}</h1></header>
+          <PlanDetails plan={plan} openLesson={openLesson} />
           <section className="card">
-            <h2>What it will do</h2>
-            <p><b>Check my work.</b> Photograph your knitting and it points out likely mistakes, with a fix for each.</p>
-            <p><b>Knit from a photo.</b> Show it a scarf, hat or mitts you like and it finds the closest pattern in the app.</p>
+            <h2>The pattern</h2>
+            <p className="sub">Cast on {plan.pattern.cast_on}, worked {plan.pattern.construction === 'round' ? 'in the round' : 'flat'}. Every row was test-knitted by the app's engine before you saw this.</p>
+            <ol className="steps">{plan.pattern.sections.map((s) => <li key={s.title}><b>{s.title}.</b> {s.instructions}</li>)}</ol>
           </section>
-          <details className="howto">
-            <summary>I have my own OpenAI key</summary>
-            <label htmlFor="okey">OpenAI API key
-              <input id="okey" type="password" autoComplete="off" placeholder="sk-…" onChange={(e) => e.target.value.trim().length > 20 && save({ ...cfg, key: e.target.value.trim() })} /></label>
-            <p className="sub">Kept in this browser on this device only. Each scan costs a small amount on your OpenAI account, so set a monthly spending limit there.</p>
-          </details>
+          <button className="btn wide" onClick={keep}>Save and start building</button>
+          <p className="sub">An AI designed this. The stitch counts are proven to fit together, but nobody has knitted it. Knit a swatch first and try the piece on as you go.</p>
         </>
-      ) : (
-        <>
-          <div className="seg">
-            <button aria-pressed={mode === 'check'} onClick={() => { setMode('check'); setFound(null); setCheck(null) }}>Check my work</button>
-            <button aria-pressed={mode === 'identify'} onClick={() => { setMode('identify'); setFound(null); setCheck(null) }}>Knit from a photo</button>
-          </div>
+      )}
 
-          <section className="card">
-            {mode === 'check' && (
-              <label htmlFor="cproj">What are you knitting?
-                <select id="cproj" value={projectId} onChange={(e) => setProjectId(e.target.value)}>
-                  {makeable.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-                </select></label>
-            )}
-            <div className="drop">
-              {photo && <img src={photo} alt="The photo you chose" />}
-              <b>{mode === 'check' ? 'A photo of your knitting' : 'A photo of something you want to make'}</b>
-              <span className="sub">{mode === 'check' ? 'Lay it flat in daylight and fill the frame with stitches.' : 'A clear shot of the whole item works best.'}</span>
-              <input id="cphoto" type="file" accept="image/*" aria-label="Choose a photo" onChange={(e) => pickPhoto(e.target.files?.[0])} />
+      {check && (
+        <section className="card" aria-live="polite">
+          <h2>What the coach sees</h2>
+          {!check.photoOk && <div className="callout warn"><b>The photo is hard to read</b><p>{check.photoAdvice || 'Try again closer up, in daylight.'}</p></div>}
+          <p><b>Fabric:</b> {stitchName(check.fabricSeen)}. <b>Matches this step:</b> {check.matchesExpected}.</p>
+          {check.issues.length === 0 && check.photoOk && <div className="callout ok"><b>No mistakes spotted</b><p>That does not prove there are none. Count your stitches to be sure.</p></div>}
+          {check.issues.map((i) => (
+            <div key={i.problem} className="callout warn">
+              <b>{i.problem}</b>
+              {i.where && <p><span className="tag">Where</span> {i.where}</p>}
+              {i.fix && <p><span className="tag">Fix</span> {i.fix}</p>}
+              <p className="tag">The coach is {i.confidence === 'high' ? 'fairly sure' : i.confidence === 'medium' ? 'not certain' : 'guessing'}</p>
             </div>
-            <button className="btn wide" disabled={!photo || busy} onClick={scan}>{busy ? 'Reading the photo…' : 'Scan this photo'}</button>
-            <p className="sub">The photo is shrunk, then sent to OpenAI to be read. It is not stored by this app.</p>
-            {error && <p className="error" role="alert">{error}</p>}
-          </section>
+          ))}
+          {check.goingWell.length > 0 && <div className="callout ok"><b>Going well</b>{check.goingWell.map((g) => <p key={g}>{g}</p>)}</div>}
+          {check.next && <p><b>Next:</b> {check.next}</p>}
+          <p className="sub">An AI read this photo and can be wrong. Treat it as a second pair of eyes, not a verdict.</p>
+        </section>
+      )}
 
-          {check && (
-            <section className="card" aria-live="polite">
-              <h2>What the coach sees</h2>
-              {!check.photoOk && <div className="callout warn"><b>The photo is hard to read</b><p>{check.photoAdvice || 'Try again closer up, in daylight.'}</p></div>}
-              <p><b>Fabric:</b> {stitchName(check.fabricSeen)}. <b>Matches this step:</b> {check.matchesExpected}.</p>
-              {check.issues.length === 0 && check.photoOk && <div className="callout ok"><b>No mistakes spotted</b><p>That does not prove there are none. Count your stitches to be sure.</p></div>}
-              {check.issues.map((i) => (
-                <div key={i.problem} className="callout warn">
-                  <b>{i.problem}</b>
-                  {i.where && <p><span className="tag">Where</span> {i.where}</p>}
-                  {i.fix && <p><span className="tag">Fix</span> {i.fix}</p>}
-                  <p className="tag">The coach is {i.confidence === 'high' ? 'fairly sure' : i.confidence === 'medium' ? 'not certain' : 'guessing'}</p>
-                </div>
-              ))}
-              {check.goingWell.length > 0 && <div className="callout ok"><b>Going well</b>{check.goingWell.map((g) => <p key={g}>{g}</p>)}</div>}
-              {check.next && <p><b>Next:</b> {check.next}</p>}
-              <p className="sub">An AI read this photo and can be wrong. Treat it as a second pair of eyes, not a verdict.</p>
-            </section>
-          )}
-
-          {found && (
-            <section className="card" aria-live="polite">
-              <h2>What the coach sees</h2>
-              <dl className="find">
-                <dt>Item</dt><dd>{found.item === 'other' ? found.itemOther || 'Not something the app recognises' : found.item === 'hat' ? 'Hat' : found.item === 'mitts' ? 'Mitts' : 'Scarf'}</dd>
-                <dt>Stitch</dt><dd>{found.stitch === 'other' ? found.stitchOther || 'Something else' : stitchName(found.stitch)}</dd>
-                <dt>Colours</dt><dd>{found.colours}</dd>
-                <dt>Worked</dt><dd>{found.worked === 'round' ? 'In the round' : found.worked === 'flat' ? 'Flat' : 'Unclear'}</dd>
-                <dt>How sure</dt><dd>{found.confidence}</dd>
-              </dl>
-              {found.notes && <p className="sub">{found.notes}</p>}
-              {match ? (
-                <>
-                  <div className={`callout ${match.exact ? 'ok' : 'drill'}`}>
-                    <b>{match.exact ? 'The app has this pattern' : 'Closest pattern in the app'}</b>
-                    <p>{PROJECTS.find((p) => p.id === match.project)!.name}{match.style ? ` in ${stitchPattern(match.style).name.toLowerCase()}` : ''}. Sizes and stitch counts come from your own measurements, not from the photo.</p>
-                    {!match.exact && <p>It will not be identical: {found.colours > 1 ? 'the app knits in one colour so far. ' : ''}{match.style && match.style !== found.stitch ? 'That stitch is not in the library yet, so this uses the nearest one.' : ''}</p>}
-                  </div>
-                  <button className="btn wide" onClick={start}>Start this pattern</button>
-                </>
-              ) : <div className="callout warn"><b>No pattern for this yet</b><p>The app can make scarves, hats and fingerless mitts so far.</p></div>}
-            </section>
-          )}
-
-          {cfg.key && (
-            <details className="howto">
-              <summary>Key and model settings</summary>
-              <label htmlFor="omodel">Model
-                <input id="omodel" value={cfg.model} onChange={(e) => save({ ...cfg, model: e.target.value.trim() })} spellCheck={false} /></label>
-              <button className="chip" onClick={() => { save({ key: '', model: cfg.model }); setPhoto(null); setCheck(null); setFound(null) }}>Remove the key from this device</button>
-            </details>
-          )}
-        </>
+      {cfg.key && (
+        <details className="howto">
+          <summary>Key and model settings</summary>
+          <label htmlFor="omodel">Model
+            <input id="omodel" value={cfg.model} onChange={(e) => save({ ...cfg, model: e.target.value.trim() })} spellCheck={false} /></label>
+          <button className="chip" onClick={() => { save({ key: '', model: cfg.model }); setPhoto(null); clear() }}>Remove the key from this device</button>
+        </details>
       )}
     </>
   )

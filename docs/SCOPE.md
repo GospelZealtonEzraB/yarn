@@ -66,7 +66,8 @@ about 75 kB to about 220 kB compressed.
   tested by the engine. The wording needs a knitter's read-through.
 - **Yarn-path view draws knit, purl, k2tog and ssk.** Yarn over and M1
   increases appear in the chart only.
-- **Photo coach is built but not switched on.** It needs the relay in `server/` deployed once, with the OpenAI key stored there. Until then the Coach tab says so. Entering a personal key in the app remains possible as a fallback.
+- **The design coach is built but not switched on.** It needs the relay in `server/` deployed once, with the OpenAI key stored there.
+- **Generated designs are unknitted.** The engine proves the counts; nobody has made the item.
 - **Row gauge is estimated** from stitch gauge. Steps say to trust the tape measure.
 - **The Worn view uses a plain egg-shaped head** with no face or ears, so the hat looks like it covers most of the head. A detailed head model would fix the look. The mitts have no worn view yet.
 - **Scarves have no 3D view.** They are flat, so the to-scale flat picture is the honest one.
@@ -80,26 +81,56 @@ about 75 kB to about 220 kB compressed.
 6. A dropped-stitch drawing, so the rescue lesson and a game can show the ladder.
 7. Measured row gauge as an optional setting.
 
-## Photo coach
+## Design coach
 
-Built on OpenAI's vision models (default `gpt-6.1-terra`, changeable in the
-app). The photo is shrunk on the device and sent straight from the browser to
-OpenAI with the knitter's key.
+Built on OpenAI's Responses API with reasoning switched on (default model
+`gpt-6.1-terra`). Calls are stored, so they appear in the OpenAI account's
+logs.
 
-- **Check my work:** given the project, step and expected stitch pattern, the
-  model reports the fabric it sees, whether it matches, up to four possible
-  mistakes with a fix and a confidence each, and what looks right.
-- **Knit from a photo:** the model names the item, stitch pattern, colour count
-  and construction. The app maps that to its closest tested pattern and stitch.
-- **Guard rails:** the model is told never to give stitch counts or sizes, and
-  every reply is checked against a fixed shape. Anything else is dropped.
+### Design it for me (agentic)
 
-The key belongs on the relay in `server/` (a Cloudflare Worker, free plan),
-which accepts only the app's address and only the coach's own request.
+The knitter gives a photo, a description, or both. A design agent then works
+in a loop until it has a plan that passes every check:
 
-Still to do: deploying that relay, a per-person usage limit, testing on many
-real photos of mistakes, marking the problem on the photo, and converting
-written patterns.
+1. It studies the request and reads the knitter's profile: gauge,
+   measurements, finished lessons, and every lesson the app has.
+2. It designs the item for that knitter: construction, sections, stitch
+   patterns, lengths.
+3. It gets every stitch and row count from tools, never from its own
+   arithmetic.
+4. It test-knits its draft in the app's engine and corrects whatever does not
+   fit.
+5. It lists the skills needed in learning order, links each to an existing
+   lesson where there is one, and writes a new lesson where there is not.
+6. It chooses the yarn and tools for this design, with a reason for each.
+7. It hands in one structured plan (JSON). The app checks it again and sends
+   it back with the problems if anything fails.
+
+The plan is saved as a project. The builder, the row cards, the finished-item
+picture and the progress tracking all run from it.
+
+What is proven: the rows fit together and reach the stitch counts claimed.
+What is not: fit, appearance, anything the engine's shorthand cannot express
+(the agent must list those under "not machine-checked"), and the wording of
+generated lessons, which have no diagrams and no human review.
+
+### Check my work
+
+Given the project, step and expected fabric, the model reports the fabric it
+sees, whether it matches, up to four possible mistakes with a fix and a
+confidence each, and what looks right. Replies are checked against a fixed
+shape and anything else is dropped.
+
+### Where the key lives
+
+On the relay in `server/` (a Cloudflare Worker, free plan), which accepts only
+the app's address, only the app's two jobs, a fixed model and a cap on reply
+size. Until it is deployed the Coach tab says it is not switched on; entering
+a personal key in the app is a fallback.
+
+Still to do: deploying the relay, a per-person usage limit, diagrams for
+generated lessons, letting the knitter ask for changes to a plan, testing on
+many real photos, and marking problems on the photo.
 
 ## Version 4: advanced
 
