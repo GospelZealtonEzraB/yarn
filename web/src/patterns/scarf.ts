@@ -10,6 +10,7 @@ export function scarfPattern(s: Settings): Pattern {
   return {
     castOn,
     construction: 'flat',
+    halved: false,
     fits: `About ${WIDTH_CM} cm wide and ${LENGTH_CM} cm long.`,
     kit: [
       { name: `${s.yarn} yarn`, qty: 'about 200 g' },
@@ -22,7 +23,7 @@ export function scarfPattern(s: Settings): Pattern {
       { title: 'Cast on', picture: 'caston', help: ['caston'], recipe: `CO ${castOn}`,
         text: `Cast on ${castOn} stitches with the long-tail cast-on.`,
         tip: `Pull out a tail of about ${Math.round(WIDTH_CM * 3 / 10) * 10 + 20} cm before making the slip knot.` },
-      { title: 'Knit every row', help: ['knit'], recipe: 'K all sts, turn', rows: Array(rows).fill('K1'), until: `the scarf measures ${LENGTH_CM} cm, or you have about 2 m of yarn left`,
+      { title: 'Knit every row', help: ['knit'], recipe: 'K all sts, turn', rows: Array(rows).fill('K1'), cm: LENGTH_CM, until: `the scarf measures ${LENGTH_CM} cm, or you have about 2 m of yarn left`,
         text: 'Knit every stitch to the end of the row. Swap the needles between your hands so the full one is in your left hand, and knit back. Two rows make one ridge.',
         tip: `Count your stitches every few rows. You should always have ${castOn}. A growing count usually means the yarn was wrapped over the needle at the start of a row.` },
       { title: 'Bind off', picture: 'bindoff', help: ['bindoff'], recipe: 'BO all sts',

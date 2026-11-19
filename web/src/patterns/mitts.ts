@@ -20,6 +20,8 @@ export function mittsPattern(s: Settings): Pattern {
   return {
     castOn,
     construction: 'flat',
+    halved: true,
+    marks: [{ fromCm: total - 9, toCm: total - 4, label: 'thumb gap' }],
     fits: `Each mitt is ${total} cm long and fits a hand about ${s.handCm} cm around at the knuckles.`,
     kit: [
       { name: `${s.yarn} yarn`, qty: 'about 50 g' },
@@ -30,12 +32,12 @@ export function mittsPattern(s: Settings): Pattern {
     ],
     steps: [
       { title: 'Cast on', picture: 'caston', help: ['caston'], recipe: `CO ${castOn}`, text: `Cast on ${castOn} stitches with the long-tail cast-on. Leave a 30 cm tail: you will sew the seam with it.` },
-      { title: 'Knit the cuff', help: ['rib'], recipe: `RS: ${rs} · WS: ${ws}`, rows: rib(pairs(CUFF_CM)), until: `the cuff measures ${CUFF_CM} cm`,
+      { title: 'Knit the cuff', help: ['rib'], recipe: `RS: ${rs} · WS: ${ws}`, rows: rib(pairs(CUFF_CM)), cm: CUFF_CM, until: `the cuff measures ${CUFF_CM} cm`,
         text: 'Work 2×2 ribbing. Right-side rows: knit 2, purl 2, ending with knit 2. Wrong-side rows: purl 2, knit 2, ending with purl 2.' },
-      { title: 'Knit the hand', help: ['stockinette'], recipe: 'RS: K all · WS: P all', rows: plain(pairs(HAND_CM)), until: `the piece measures ${CUFF_CM + HAND_CM} cm from the cast-on edge`,
+      { title: 'Knit the hand', help: ['stockinette'], recipe: 'RS: K all · WS: P all', rows: plain(pairs(HAND_CM)), cm: HAND_CM, until: `the piece measures ${CUFF_CM + HAND_CM} cm from the cast-on edge`,
         text: 'Switch to stockinette. Knit every right-side row and purl every wrong-side row.',
         tip: 'The edges will curl. The seam straightens them out.' },
-      { title: 'Knit the top edge', help: ['rib'], recipe: `RS: ${rs} · WS: ${ws}`, rows: rib(pairs(TOP_CM)), until: `the piece measures ${total} cm`,
+      { title: 'Knit the top edge', help: ['rib'], recipe: `RS: ${rs} · WS: ${ws}`, rows: rib(pairs(TOP_CM)), cm: TOP_CM, until: `the piece measures ${total} cm`,
         text: 'Work 2×2 ribbing again for a neat edge across the knuckles.' },
       { title: 'Bind off', picture: 'bindoff', help: ['bindoff'], recipe: 'BO in rib', text: 'Bind off loosely, knitting the knits and purling the purls. Leave a 30 cm tail.' },
       { title: 'Sew the side seam', picture: 'seam', recipe: 'Seam, leaving a thumb gap',

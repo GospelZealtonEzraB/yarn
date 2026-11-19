@@ -14,6 +14,8 @@ export interface Step {
   help?: string[]
   /** One recipe per row or round in this step. The engine works these to draw the piece and to prove the counts. */
   rows?: string[]
+  /** How long this section is when finished, in cm. Needed for every step that has rows. */
+  cm?: number
   /** What tells the knitter to stop, since row counts are estimates. */
   until?: string
 }
@@ -24,6 +26,10 @@ export interface Pattern {
   fits: string
   kit: KitItem[]
   steps: Step[]
+  /** True when the finished item is seen doubled: a tube laid flat, or a piece folded in half. */
+  halved: boolean
+  /** Features to point out on the picture of the finished item, measured from the cast-on edge. */
+  marks?: { fromCm: number; toCm: number; label: string }[]
 }
 
 export interface Settings {

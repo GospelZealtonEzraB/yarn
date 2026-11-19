@@ -15,6 +15,33 @@ that produces the instructions.
 | Progress | Saved on the device. No account, no server. |
 | Install | Installable, works offline once hosted. |
 
+## The builder picture
+
+Every project is shown as the whole finished item, drawn to scale from its
+stitch counts and section lengths. Knitted sections are filled and textured,
+the section in progress is brighter, sections still to come are a dashed
+outline, and a needle line marks where the knitter is. A row of step chips
+underneath is the map of the whole build.
+
+Tube-shaped items (the beanie, the seamed mitts) also have a 3D view that can
+be turned by dragging. It is spun from the same stitch counts, one mesh column
+per stitch, so ribbing shows as real columns.
+
+### 3D: what exists and what a fuller version takes
+
+| Level | What it is | Needs | Status |
+|---|---|---|---|
+| 1. Solid of revolution | Hat or mitt as a turned shape with progress colours | three.js, already in the app | Built |
+| 2. Shape as worn | The hat stretched over a head form, a scarf draped | A head and hand form to wrap the fabric onto, plus a simple stretch model | Not built |
+| 3. Stitch-level surface | Every loop as raised yarn | A normal or displacement texture generated from the stitch chart | Not built |
+| 4. Non-tube garments | Gloves, socks, sweaters | A mesh assembled from several tubes with joins (thumb, heel, sleeves) | Not built |
+| 5. Hands and needles in 3D | Animated technique views | Rigged 3D hand models and motion data from a real knitter | Not built, needs outside assets |
+
+Stack for 3D: three.js with WebGL, which every current phone and desktop
+browser supports. The app falls back to the flat picture where WebGL is
+missing. No server is involved. The cost is download size: the app grew from
+about 75 kB to about 220 kB compressed.
+
 ## Version 1 gaps, known and deliberate
 
 - **Movement diagrams exist for knit, purl and bind-off**, showing needles and
@@ -30,6 +57,8 @@ that produces the instructions.
   increases appear in the chart only.
 - **Photo coach is a placeholder screen.**
 - **Row gauge is estimated** from stitch gauge. Steps say to trust the tape measure.
+- **The 3D view shows the item relaxed, not worn.** A hat looks like a flat-topped cylinder until it is stretched over a head form.
+- **Scarves have no 3D view.** They are flat, so the to-scale flat picture is the honest one.
 
 ## Version 2: next
 

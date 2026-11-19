@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { inWords, parseRow, produced, runs } from './recipe'
 import { isWrongSideRow, knit } from './fabric'
 import { yarnSpans } from './yarnPath'
+import { product, profile, reached } from './product'
 import { between, BINDOFF, blend, DIAGRAMS, KNIT, PURL, Z } from './technique'
 import { beanie, crownRecipes } from '../patterns/beanie'
 import { needleFor, PROJECTS } from '../patterns/catalog'
@@ -312,5 +313,76 @@ describe('follow-along text', () => {
   })
   it('a project never needs a lesson from a later stage than its own', () => {
     for (const p of PROJECTS) for (const n of p.needs ?? []) expect(LESSONS.find((l) => l.id === n)!.stage, `${p.id} needs ${n}`).toBeLessThanOrEqual(p.stage)
+  })
+})
+
+describe('3D shape', () => {
+  const settings = { gauge: 18, headCm: 56, handCm: 19, yarn: 'Test', needle: '5 mm' }
+  const hat = () => {
+    const pattern = PROJECTS.find((p) => p.id === 'beanie')!.build!(settings)
+    const fabric = knit(pattern.castOn, pattern.steps.flatMap((s) => s.rows ?? []), 'round')
+    return profile(product(pattern, fabric, 18))
+  }
+  it('the brim ring has the circumference of the cast-on stitches', () =>
+    expect(hat()[0][0] * 2 * Math.PI).toBeCloseTo((88 / 18) * 10, 5))
+  it('the surface is never longer than the knitting: each step along the profile covers at most the row length it represents', () => {
+    const p = hat()
+    for (let i = 1; i < p.length; i++) {
+      const along = Math.hypot(p[i][0] - p[i - 1][0], p[i][1] - p[i - 1][1])
+      expect(along).toBeLessThanOrEqual(p[i][2] - p[i - 1][2] + 1e-9)
+    }
+  })
+  it('the sides rise straight and the crown curves over: height gained per cm is less in the crown than in the body', () => {
+    const p = hat()
+    const rise = (from: number, to: number) => (p.find((q) => q[2] >= to)![1] - p.find((q) => q[2] >= from)![1]) / (to - from)
+    expect(rise(6, 12)).toBeCloseTo(1, 5)
+    expect(rise(16, 21)).toBeLessThan(0.9)
+    expect(p[p.length - 1][0]).toBeLessThan(p[0][0] / 4)
+  })
+})
+
+describe('finished-product picture', () => {
+  const settings = { gauge: 18, headCm: 56, handCm: 19, yarn: 'Test', needle: '5 mm' }
+  const make = (id: string) => {
+    const pattern = PROJECTS.find((p) => p.id === id)!.build!(settings)
+    const fabric = knit(pattern.castOn, pattern.steps.flatMap((s) => s.rows ?? []), pattern.construction)
+    return { pattern, fabric, shape: product(pattern, fabric, settings.gauge) }
+  }
+  it('every project has a shape whose sections cover all its rows and all its length, in order', () => {
+    for (const p of PROJECTS) if (p.build) {
+      const { fabric, shape } = make(p.id)
+      expect(shape.sections[0].rows[0]).toBe(0)
+      expect(shape.sections[shape.sections.length - 1].rows[1]).toBe(fabric.rows.length)
+      for (let i = 1; i < shape.sections.length; i++) {
+        expect(shape.sections[i].rows[0]).toBe(shape.sections[i - 1].rows[1])
+        expect(shape.sections[i].cm[0]).toBe(shape.sections[i - 1].cm[1])
+      }
+      expect(shape.outline.flat().every(Number.isFinite)).toBe(true)
+    }
+  })
+  it('the beanie is a hat: half the circumference wide, ribbed brim, plain body, crown that narrows', () => {
+    const { shape } = make('beanie')
+    expect(shape.widthCm).toBeCloseTo(88 / 18 * 10 / 2, 5)
+    expect(shape.sections.map((s) => s.texture)).toEqual(['rib', 'stockinette', 'stockinette'])
+    const widths = shape.outline.slice(shape.outline.length / 2).map(([, v]) => v)
+    expect(widths[0]).toBeLessThan(widths[widths.length - 1] / 4) // top of the crown is far narrower than the brim
+    expect(shape.lengthCm).toBeGreaterThan(19)
+    expect(shape.lengthCm).toBeLessThan(24)
+  })
+  it('the scarves know their texture and the mitts mark the thumb gap inside their length', () => {
+    expect(make('scarf').shape.sections[0].texture).toBe('garter')
+    expect(make('ribscarf').shape.sections[0].texture).toBe('rib')
+    const mitts = make('mitts').shape
+    expect(mitts.sections.map((s) => s.texture)).toEqual(['rib', 'stockinette', 'rib'])
+    expect(mitts.marks[0].fromCm).toBeGreaterThan(0)
+    expect(mitts.marks[0].toCm).toBeLessThan(mitts.lengthCm)
+  })
+  it('the progress marker moves from the cast-on edge to the far end, never backwards', () => {
+    const { fabric, shape } = make('beanie')
+    expect(reached(shape, 0)).toBe(0)
+    expect(reached(shape, fabric.rows.length)).toBe(shape.lengthCm)
+    let last = -1
+    for (let r = 0; r <= fabric.rows.length; r++) { const u = reached(shape, r); expect(u).toBeGreaterThanOrEqual(last); last = u }
+    expect(reached(shape, shape.sections[0].rows[1])).toBe(5) // the brim ends 5 cm up
   })
 })

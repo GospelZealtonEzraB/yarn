@@ -14,6 +14,7 @@ export function ribScarfPattern(s: Settings): Pattern {
   return {
     castOn,
     construction: 'flat',
+    halved: false,
     fits: `About 15 cm wide when relaxed and ${LENGTH_CM} cm long. Ribbing pulls in, so it stretches wider.`,
     kit: [
       { name: `${s.yarn} yarn`, qty: 'about 200 g' },
@@ -25,7 +26,7 @@ export function ribScarfPattern(s: Settings): Pattern {
     steps: [
       { title: 'Cast on', picture: 'caston', help: ['caston'], recipe: `CO ${castOn}`, text: `Cast on ${castOn} stitches with the long-tail cast-on.`,
         tip: 'The count is a multiple of 4 plus 2, so the row starts and ends with knit 2.' },
-      { title: 'Knit the ribbing', help: ['rib', 'read'], recipe: `RS: ${rs} · WS: ${ws}`, rows: Array.from({ length: pairs * 2 }, (_, i) => (i % 2 ? ws : rs)), until: `the scarf measures ${LENGTH_CM} cm`,
+      { title: 'Knit the ribbing', help: ['rib', 'read'], recipe: `RS: ${rs} · WS: ${ws}`, rows: Array.from({ length: pairs * 2 }, (_, i) => (i % 2 ? ws : rs)), cm: LENGTH_CM, until: `the scarf measures ${LENGTH_CM} cm`,
         text: 'Right-side rows: knit 2, purl 2 across, ending with knit 2. Wrong-side rows: purl 2, knit 2 across, ending with purl 2. Once the pattern is set you can stop counting and read the stitches: knit the Vs, purl the bumps.',
         tip: 'Move the yarn between the needles each time you switch, to the front before purls and to the back before knits.' },
       { title: 'Bind off in pattern', picture: 'bindoff', help: ['bindoff'], recipe: 'BO in rib', text: 'Bind off as usual, but knit the knit stitches and purl the purl stitches as you go. That keeps the edge as stretchy as the scarf.',

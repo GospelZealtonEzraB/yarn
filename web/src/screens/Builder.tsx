@@ -1,12 +1,15 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { LESSONS } from '../content/lessons'
 import { knit } from '../engine/fabric'
+import { product as shapeOf } from '../engine/product'
 import { inWords, parts, repeats } from '../engine/recipe'
 import { DIAGRAMS } from '../engine/technique'
 import { PROJECTS } from '../patterns/catalog'
 import { settingsOf, useStore } from '../store'
 import { PieceView, YarnSwatch } from '../ui/FabricView'
 import { CastOnPicture, KitIcon, RingPicture, RowTiles, SeamPicture } from '../ui/Pictures'
+import { Product3D } from '../ui/Product3D'
+import { ProductView } from '../ui/ProductView'
 import { TechniqueView } from '../ui/TechniqueView'
 
 const CLOSE_UP = 8 // stitches shown in the close-up
@@ -14,10 +17,12 @@ const CLOSE_UP = 8 // stitches shown in the close-up
 export function Builder({ id, back, openLesson }: { id: string; back: () => void; openLesson: (id: string) => void }) {
   const { state, set } = useStore()
   const project = PROJECTS.find((p) => p.id === id)!
+  const [solid, setSolid] = useState(false)
   const built = useMemo(() => {
     try {
       const pattern = project.build!(settingsOf(state))
-      return { pattern, fabric: knit(pattern.castOn, pattern.steps.flatMap((s) => s.rows ?? []), pattern.construction) }
+      const fabric = knit(pattern.castOn, pattern.steps.flatMap((s) => s.rows ?? []), pattern.construction)
+      return { pattern, fabric, shape: shapeOf(pattern, fabric, state.gauge) }
     } catch (e) { return { error: (e as Error).message } }
     // Only the numbers that size the pattern should rebuild it, not every progress tap.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -29,7 +34,7 @@ export function Builder({ id, back, openLesson }: { id: string; back: () => void
       <div className="callout warn"><b>These numbers do not make a pattern</b><p>{built.error} Check your measurements on the Learn tab.</p></div>
     </>
   )
-  const { pattern, fabric } = built
+  const { pattern, fabric, shape } = built
   const saved = state.projects[id] ?? { step: 0, count: 0 }
   const last = pattern.steps.length // step 0 is the kit list
   const stepNo = Math.min(saved.step, last)
@@ -43,7 +48,9 @@ export function Builder({ id, back, openLesson }: { id: string; back: () => void
   const Unit = flat ? 'Row' : 'Round'
   const total = fabric.rows.length
   const onNeedle = before + fresh > 0 ? fabric.rows[before + fresh - 1].length : pattern.castOn
-  const percent = Math.round(((before + fresh) / total) * 100)
+  // Finishing steps come after all the knitting, so the picture shows everything done.
+  const stepDone = step && !rows.length && before >= total ? total : before + fresh
+  const percent = Math.round((stepDone / total) * 100)
 
   // The row to work now.
   const current = fresh < rows.length ? rows[fresh] : null
@@ -59,6 +66,14 @@ export function Builder({ id, back, openLesson }: { id: string; back: () => void
     return { fabric: { ...fabric, castOn: CLOSE_UP, rows: window }, focus: window.length - 1 }
   })()
 
+  // Only tubes have a meaningful solid shape: knitted in the round, or folded and seamed into a tube.
+  const tube = pattern.halved
+  const view3d = tube && (
+    <div className="seg view-toggle">
+      <button aria-pressed={!solid} onClick={() => setSolid(false)}>Flat</button>
+      <button aria-pressed={solid} onClick={() => setSolid(true)}>3D</button>
+    </div>
+  )
   const needs = (project.needs ?? []).map((n) => LESSONS.find((l) => l.id === n)!)
   const finish = () => set({ projects: { ...state.projects, [id]: { step: 0, count: 0 } }, made: { ...state.made, [id]: (state.made[id] ?? 0) + 1 } })
 
@@ -73,7 +88,11 @@ export function Builder({ id, back, openLesson }: { id: string; back: () => void
 
       {!step ? (
         <>
-          <figure className="piece-fig"><PieceView fabric={fabric} done={total} fresh={0} /><figcaption>The finished piece, stitch for stitch · {pattern.fits}</figcaption></figure>
+          <figure className="hero">
+            {view3d}
+            {solid && tube ? <Product3D product={shape} done={total} current={null} stitches={pattern.castOn} /> : <ProductView product={shape} done={total} current={null} unit={unit} />}
+            <figcaption>What you are making · {pattern.fits}</figcaption>
+          </figure>
           <section className="card">
             <h2>Your kit</h2>
             <ul className="kit">{pattern.kit.map((k) => <li key={k.name}><KitIcon name={k.name} /><span>{k.name}</span><b>{k.qty}</b></li>)}</ul>
@@ -93,14 +112,25 @@ export function Builder({ id, back, openLesson }: { id: string; back: () => void
         </>
       ) : (
         <>
-          <figure className="piece-fig">
-            {step.picture === 'caston' ? <CastOnPicture count={pattern.castOn} />
-              : step.picture === 'ring' ? <RingPicture />
-              : step.picture === 'seam' ? <SeamPicture />
-              : <PieceView fabric={fabric} done={step.picture === 'done' ? total : before + fresh} fresh={fresh} />}
-            <figcaption>{step.picture === 'caston' || step.picture === 'ring' || step.picture === 'seam' ? step.recipe
-              : `Your piece, stitch for stitch · pink = this step · ${onNeedle} stitches on the needle`}</figcaption>
+          <figure className="hero">
+            {view3d}
+            {solid && tube
+              ? <Product3D product={shape} done={stepDone} current={rows.length ? stepNo - 1 : null} stitches={pattern.castOn} />
+              : <ProductView product={shape} done={stepDone} current={rows.length ? stepNo - 1 : null} unit={unit} />}
+            <figcaption>{percent}% knitted · filled = done · bright = this step · dashed = still to come</figcaption>
           </figure>
+          <ol className="map">
+            <li className={stepNo > 0 ? 'done' : 'now'}><button onClick={() => go(0)}>Kit</button></li>
+            {pattern.steps.map((st, i) => (
+              <li key={st.title} className={i + 1 < stepNo ? 'done' : i + 1 === stepNo ? 'now' : ''}><button onClick={() => go(i + 1)}>{st.title}</button></li>
+            ))}
+          </ol>
+          {(step.picture === 'caston' || step.picture === 'ring' || step.picture === 'seam') && (
+            <figure className="piece-fig">
+              {step.picture === 'caston' ? <CastOnPicture count={pattern.castOn} /> : step.picture === 'ring' ? <RingPicture /> : <SeamPicture />}
+              <figcaption>{step.recipe}</figcaption>
+            </figure>
+          )}
           {step.picture === 'bindoff' && <section className="card"><TechniqueView technique={DIAGRAMS.bindoff} /></section>}
 
           {rows.length > 0 && (
@@ -150,6 +180,10 @@ export function Builder({ id, back, openLesson }: { id: string; back: () => void
               </details>
             )
           })}
+          <details className="howto">
+            <summary>See every stitch so far</summary>
+            <figure className="piece-fig"><PieceView fabric={fabric} done={stepDone} fresh={fresh} /><figcaption>Pink = this step · {onNeedle} stitches on the needle</figcaption></figure>
+          </details>
         </>
       )}
 
